@@ -136,7 +136,7 @@ const ENQ_BENS = {
   III: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete; retroescavadeira. Com análise especial da Comissão de Doação: veículos trucados; caminhão compactador de resíduos sólidos.',
 };
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v1.3 (nov/2026)';
+const VERSAO = 'v1.5 (nov/2026)';
 
 // ---------------------------------------------------------------- estado
 const VAZIO = () => ({
@@ -321,8 +321,9 @@ const ETAPAS_PRIV = [
       <div class="photos">${FOTOS.map((p, i) => `<div class="ph"><img src="${p.data}" alt="Foto ${i + 1}"><div class="acts"><button class="mini" data-rot="${i}">↻ Girar</button><button class="mini" data-delph="${i}">✕ Remover</button></div>
         <input type="text" placeholder="Bem mostrado na foto" data-ph="${i}" data-f="bem" value="${esc(p.bem)}">
         <input type="text" placeholder="Data (dd/mm/aaaa)" data-ph="${i}" data-f="dataFoto" value="${esc(p.dataFoto)}">
-        <input type="text" placeholder="Coordenadas" data-ph="${i}" data-f="coord" value="${esc(p.coord)}">
-        ${p.auto ? '<div class="msg ok" style="margin-top:4px">Data/local lidos da foto</div>' : '<div class="msg warn" style="margin-top:4px">Foto sem data/local: preencha à mão</div>'}</div>`).join('')}</div>
+        <input type="text" placeholder="Coordenadas (se tiver)" data-ph="${i}" data-f="coord" value="${esc(p.coord)}">
+        <input type="text" placeholder="Local onde o bem está (endereço, comunidade ou sítio)" data-ph="${i}" data-f="local" value="${esc(p.local || '')}">
+        ${p.auto ? '<div class="msg ok" style="margin-top:4px">Data/local lidos da foto</div>' : '<div class="msg warn" style="margin-top:4px">Foto sem data/coordenadas: preencha a data e o local à mão</div>'}</div>`).join('')}</div>
       <p class="hint" style="margin-top:8px">No protótipo, as fotos não ficam salvas no rascunho: se a página for recarregada, será preciso adicioná-las de novo.</p>` : ''}` },
   { t: 'Revisão', f: () => revisao() },
 ];
@@ -375,6 +376,7 @@ function revisao() {
     <dt>Entidade</dt><dd>${esc(S.razao) || '—'} · CNPJ ${esc(S.cnpj) || '—'} · ${GRUPOS[GR()]?.rotulo || 'grupo não escolhido'}</dd>
     <dt>Representante legal</dt><dd>${esc(S.rNome) || '—'} (${esc(S.rCargo)})</dd>
     <dt>Bens pedidos</dt><dd>${b.length ? b.map(x => `${esc(x.qtd)} × ${esc(x.nome)}`).join('; ') : '—'}</dd>
+    <dt>Exigências aplicadas</dt><dd>${grupoMotivo()}</dd>
     <dt>Associados</dt><dd>${S.assocModo === 'Anexar PDF' ? `${esc(S.nAssocAnexo) || '—'} associados – relação em PDF${ARQ_ASSOC ? ' (' + esc(ARQ_ASSOC.name) + ')' : ''}, anexada ao final do Plano de Uso` : associados().length + ' na lista'}</dd>
     <dt>Bens já recebidos</dt><dd>${S.recebeu === 'Sim' ? `Sim – relatório e ${FOTOS.length} foto(s) serão anexados ao Plano de Uso` : (S.recebeu || '—')}</dd>
   </dl>
@@ -397,6 +399,14 @@ function perfilMsg() {
   return `<div class="msg ok">Com ${a} ano(s) de CNPJ e ${n} associados, o perfil da entidade permite pedir bens até o <b>${GRUPOS[P].rotulo}</b>.</div>`;
 }
 
+function grupoMotivo() {
+  const P = PERFIL(), G = GR(), b = bensSel();
+  if (!P) return 'Perfil não informado (etapa Perfil).';
+  if (!b.length) return `<span style="color:var(--alerta)">Nenhum bem escolhido ainda. As exigências dependem do bem (etapa Pedido).</span>`;
+  const outro = S.bens.__outro && S.bens.__outro.on;
+  if (outro && G === P) return `<b>${GRUPOS[G].rotulo}</b> – o item “Outro bem” foi enquadrado no grupo máximo do perfil até a análise da Comissão.`;
+  return `<b>${GRUPOS[G].rotulo}</b>${G !== P ? ` – os bens escolhidos só exigem o ${GRUPOS[G].rotulo} (o perfil permite até o ${GRUPOS[P].rotulo}).` : '.'}`;
+}
 function docsGerados() {
   const g = [`Plano de Uso do Bem – ${TIPO === 'pub' ? 'Anexo G' : 'Anexo H'}`];
   if (TIPO === 'priv' && S.assocModo === 'Digitar') g.push('Relação de associados (dentro do Plano de Uso)');
@@ -409,7 +419,7 @@ function docsGerados() {
 function docsJuntar() {
   if (TIPO === 'pub') return [['Comprovante de inscrição no CNPJ', 'Obrigatório'], ['Termo de posse, diploma ou ato de investidura da autoridade', 'Obrigatório'], ['RG/CNH e CPF da autoridade', 'Obrigatório'], ['Comprovante de residência da autoridade (até 90 dias)', 'Obrigatório']];
   const d = [['Comprovante de inscrição no CNPJ', 'Obrigatório'], ['Estatuto social registrado/autenticado em cartório', 'Obrigatório'], ['Ata de eleição e posse da diretoria atual', 'Obrigatório'], ['RG/CNH e CPF do representante legal', 'Obrigatório'], ['Comprovante de residência do representante legal (até 90 dias)', 'Obrigatório'], ['Certidões: FGTS, Receita Federal/PGFN e Débitos Trabalhistas', 'Obrigatório']];
-  if (GR() === 'III') { d.push(['Extrato bancário do fundo de reserva de, no mínimo, 2% do valor do bem', 'Obrigatório (Grupo III)'], ['Comprovante de sede ou escritório em funcionamento', 'Obrigatório (Grupo III)']); }
+  if (GR() === 'III' && bensSel().length) { d.push(['Extrato bancário do fundo de reserva de, no mínimo, 2% do valor do bem', 'Obrigatório (Grupo III)'], ['Comprovante de sede ou escritório em funcionamento', 'Obrigatório (Grupo III)']); }
   if (temBem('retroescavadeira')) d.push(['Balanço patrimonial e/ou social com fundo de custeio', 'Obrigatório (retroescavadeira)']);
   if (temBem('compactador')) d.push(['Plano de Gestão de Resíduos Sólidos', 'Obrigatório (caminhão compactador)']);
   return d;
@@ -444,7 +454,7 @@ window.addEventListener('hashchange', () => { TIPO = location.hash === '#publica
 function render() {
   document.getElementById('steps').innerHTML = ETAPAS.map((e, i) => `<button class="${i === atual ? 'on' : ''}" data-go="${i}">${i + 1}. ${e.t}</button>`).join('');
   const tem = TIPO && (S.razao || bensSel().length || S.abertura);
-  document.getElementById('card').innerHTML = (atual === 0 && tem && !window._avisoVisto ? `<div class="msg warn" style="margin:0 0 14px">Há um preenchimento em andamento${S.razao ? ` de <b>${esc(S.razao)}</b>` : ''} neste navegador. Para preencher para outra entidade, clique em <b>🗑 Novo requerimento</b>, no fim da página.</div>` : '') + ETAPAS[atual].f();
+  document.getElementById('card').innerHTML = (atual === 0 && tem && !window._avisoVisto ? `<div class="msg warn" style="margin:0 0 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:240px">Há um preenchimento em andamento${S.razao ? ` de <b>${esc(S.razao)}</b>` : ''} neste navegador.</span><button class="mini" id="avCont">Continuar este</button><button class="mini" id="avNovo">🗑 Começar novo requerimento</button></div>` : '') + ETAPAS[atual].f();
   window._avisoVisto = window._avisoVisto || atual > 0;
   document.getElementById('novo').style.display = TIPO ? '' : 'none';
   document.getElementById('prev').style.visibility = atual ? 'visible' : 'hidden';
@@ -483,9 +493,11 @@ card.addEventListener('change', e => {
   if (t.dataset.k === 'rCpf') { S.rCpf = fmtCpf(S.rCpf); t.value = S.rCpf; salvar(); }
 });
 card.addEventListener('click', e => {
-  const t = e.target.closest('#geo,#gRes,#addas,[data-delas],#adddir,[data-deldir],#addrec,[data-delrec],[data-rot],[data-delph],#gReq,#gPlano');
+  const t = e.target.closest('#avCont,#avNovo,#geo,#gRes,#addas,[data-delas],#adddir,[data-deldir],#addrec,[data-delrec],[data-rot],[data-delph],#gReq,#gPlano');
   if (!t) return;
-  if (t.id === 'geo') { const m = document.getElementById('geo-msg'); if (!navigator.geolocation) { m.innerHTML = '<div class="msg warn">Este navegador não informa a localização. Digite as coordenadas ou marque a opção abaixo.</div>'; return; } m.innerHTML = '<div class="msg">Obtendo localização…</div>'; navigator.geolocation.getCurrentPosition(p => { S.gCoord = `${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`; salvar(); render(); }, () => { m.innerHTML = '<div class="msg warn">Não foi possível obter a localização (permissão negada ou indisponível). Digite as coordenadas ou marque a opção abaixo.</div>'; }, { enableHighAccuracy: true, timeout: 15000 }); }
+  if (t.id === 'avCont') { window._avisoVisto = true; render(); }
+  else if (t.id === 'avNovo') { document.getElementById('novo').click(); }
+  else if (t.id === 'geo') { const m = document.getElementById('geo-msg'); if (!navigator.geolocation) { m.innerHTML = '<div class="msg warn">Este navegador não informa a localização. Digite as coordenadas ou marque a opção abaixo.</div>'; return; } m.innerHTML = '<div class="msg">Obtendo localização…</div>'; navigator.geolocation.getCurrentPosition(p => { S.gCoord = `${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`; salvar(); render(); }, () => { m.innerHTML = '<div class="msg warn">Não foi possível obter a localização (permissão negada ou indisponível). Digite as coordenadas ou marque a opção abaixo.</div>'; }, { enableHighAccuracy: true, timeout: 15000 }); }
   else if (t.id === 'addas') { addAssoc(); }
   else if (t.dataset.delas) { S.assoc.splice(+t.dataset.delas, 1); if (!S.assoc.length) S.assoc.push({ nome: '', cpf: '' }); salvar(); render(); }
   else if (t.id === 'adddir') { S.diretoria.push({ nome: '', cpf: '', funcao: '' }); salvar(); render(); }
@@ -641,7 +653,7 @@ function anexoRelatorio(c) {
     c.push(barra('3 – REGISTRO FOTOGRÁFICO'));
     if (!FOTOS.length) c.push({ text: 'Nenhuma foto incluída.', italics: true });
     for (let i = 0; i < FOTOS.length; i += 2) {
-      const cel = j => FOTOS[j] ? { stack: [{ image: FOTOS[j].data, fit: [245, 180], alignment: 'center' }, { text: [{ text: `Foto ${j + 1}`, bold: true }, ` – Bem: ${v(FOTOS[j].bem)}`], fontSize: 8, margin: [0, 4, 0, 0] }, { text: `Data: ${v(FOTOS[j].dataFoto)}   Coordenadas: ${v(FOTOS[j].coord)}`, fontSize: 8 }] } : { text: '' };
+      const cel = j => FOTOS[j] ? { stack: [{ image: FOTOS[j].data, fit: [245, 180], alignment: 'center' }, { text: [{ text: `Foto ${j + 1}`, bold: true }, ` – Bem: ${v(FOTOS[j].bem)}`], fontSize: 8, margin: [0, 4, 0, 0] }, { text: `Data: ${v(FOTOS[j].dataFoto)}   Coordenadas: ${v(FOTOS[j].coord)}`, fontSize: 8 }, { text: `Local: ${v(FOTOS[j].local)}`, fontSize: 8 }] } : { text: '' };
       c.push({ table: { widths: ['*', '*'], body: [[cel(i), cel(i + 1)]] }, layout: { hLineColor: '#bbb', vLineColor: '#bbb', paddingTop: () => 6, paddingBottom: () => 6, paddingLeft: () => 6, paddingRight: () => 6 }, unbreakable: true, margin: [0, 0, 0, 6] });
     }
   }
