@@ -136,7 +136,7 @@ const ENQ_BENS = {
   III: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete; retroescavadeira. Com análise especial da Comissão de Doação: veículos trucados; caminhão compactador de resíduos sólidos.',
 };
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v1.5 (nov/2026)';
+const VERSAO = 'v1.6 (nov/2026)';
 
 // ---------------------------------------------------------------- estado
 const VAZIO = () => ({
@@ -150,7 +150,7 @@ const VAZIO = () => ({
   selecao: '', parcerias: [], parcOutra: '', custeio: [], custeioOutro: '', capac: '', capacDemandas: '',
   gNome: '', gCpf: '', gTel: '', gEmail: '', gEnd: '', gCoord: '',
   assocModo: '', assoc: [{ nome: '', cpf: '' }], nAssocAnexo: '',
-  recebeu: '', recebidos: [{ desc: '', fab: '', rec: '' }], usoTxt: '', benefTxt: '', manutTxt: '',
+  recebeu: '', recebidos: [{ desc: '', fab: '', rec: '', local: '' }], usoTxt: '', benefTxt: '', manutTxt: '',
   docs: [], aceite: false,
 });
 let TIPO = location.hash === '#publica' ? 'pub' : location.hash === '#privada' ? 'priv' : '';
@@ -308,8 +308,8 @@ const ETAPAS_PRIV = [
     <h2>A entidade já recebeu bens da Codevasf?</h2><p class="sub">Se sim, inclua um relatório curto de uso e fotos. Eles serão anexados ao Plano de Uso.</p>
     ${radios('recebeu', '', ['Não', 'Sim'])}
     ${S.recebeu === 'Sim' ? `
-      <h3>Bens recebidos</h3>
-      ${S.recebidos.map((r, i) => `<div class="dir" style="grid-template-columns:2fr 1fr 1fr auto"><input type="text" placeholder="Descrição do bem" data-rec="${i}" data-f="desc" value="${esc(r.desc)}"><input type="text" placeholder="Ano de fabricação" data-rec="${i}" data-f="fab" value="${esc(r.fab)}"><input type="text" placeholder="Ano de recebimento" data-rec="${i}" data-f="rec" value="${esc(r.rec)}"><button class="mini" data-delrec="${i}">✕</button></div>`).join('')}
+      <h3>Bens recebidos</h3><p class="hint">Para cada bem, informe também onde ele está hoje.</p>
+      ${S.recebidos.map((r, i) => `<div class="bem" style="margin-top:8px"><div class="dir" style="grid-template-columns:2fr 1fr 1fr auto;margin-top:0"><input type="text" placeholder="Descrição do bem" data-rec="${i}" data-f="desc" value="${esc(r.desc)}"><input type="text" placeholder="Ano de fabricação" data-rec="${i}" data-f="fab" value="${esc(r.fab)}"><input type="text" placeholder="Ano de recebimento" data-rec="${i}" data-f="rec" value="${esc(r.rec)}"><button class="mini" data-delrec="${i}">✕</button></div><input type="text" style="margin-top:6px" placeholder="Onde o bem está hoje (endereço, comunidade ou sítio)" data-rec="${i}" data-f="local" value="${esc(r.local || '')}"></div>`).join('')}
       <button class="mini" id="addrec" style="margin-top:8px">+ Adicionar bem</button>
       <h3>Relatório de uso</h3>
       ${area('usoTxt', 'Como o(s) bem(ns) vem(êm) sendo usado(s)?', { hint: '(atividades, comunidades atendidas, período de uso; se algum estiver parado, informe o motivo)' })}
@@ -502,8 +502,8 @@ card.addEventListener('click', e => {
   else if (t.dataset.delas) { S.assoc.splice(+t.dataset.delas, 1); if (!S.assoc.length) S.assoc.push({ nome: '', cpf: '' }); salvar(); render(); }
   else if (t.id === 'adddir') { S.diretoria.push({ nome: '', cpf: '', funcao: '' }); salvar(); render(); }
   else if (t.dataset.deldir) { S.diretoria.splice(+t.dataset.deldir, 1); if (!S.diretoria.length) S.diretoria.push({ nome: '', cpf: '', funcao: '' }); salvar(); render(); }
-  else if (t.id === 'addrec') { S.recebidos.push({ desc: '', fab: '', rec: '' }); salvar(); render(); }
-  else if (t.dataset.delrec) { S.recebidos.splice(+t.dataset.delrec, 1); if (!S.recebidos.length) S.recebidos.push({ desc: '', fab: '', rec: '' }); salvar(); render(); }
+  else if (t.id === 'addrec') { S.recebidos.push({ desc: '', fab: '', rec: '', local: '' }); salvar(); render(); }
+  else if (t.dataset.delrec) { S.recebidos.splice(+t.dataset.delrec, 1); if (!S.recebidos.length) S.recebidos.push({ desc: '', fab: '', rec: '', local: '' }); salvar(); render(); }
   else if (t.dataset.rot) { girar(+t.dataset.rot); }
   else if (t.dataset.delph) { FOTOS.splice(+t.dataset.delph, 1); render(); }
   else if (t.id === 'gReq') gerar('req');
@@ -647,7 +647,7 @@ function anexoRelatorio(c) {
     c.push({ text: 'ANEXO – RELATÓRIO DE USO E REGISTRO FOTOGRÁFICO DE BENS RECEBIDOS', bold: true, alignment: 'center', fontSize: 11, pageBreak: 'before' });
     c.push({ text: `${v(S.razao)} – CNPJ ${v(S.cnpj)}`, alignment: 'center', margin: [0, 2, 0, 6] });
     c.push(barra('1 – BENS JÁ RECEBIDOS DA CODEVASF'));
-    c.push(grade([[{ text: 'Nº', bold: true, fillColor: CLARO }, { text: 'Descrição do bem', bold: true, fillColor: CLARO }, { text: 'Ano de recebimento', bold: true, fillColor: CLARO }], ...S.recebidos.filter(r => r.desc).map((r, i) => [String(i + 1), r.desc, v(r.rec)])].concat(S.recebidos.some(r => r.desc) ? [] : [['—', '', '']]), [22, '*', 100]));
+    c.push(grade([[{ text: 'Nº', bold: true, fillColor: CLARO }, { text: 'Descrição do bem', bold: true, fillColor: CLARO }, { text: 'Ano de recebimento', bold: true, fillColor: CLARO }, { text: 'Onde o bem está', bold: true, fillColor: CLARO }], ...S.recebidos.filter(r => r.desc).map((r, i) => [String(i + 1), r.desc, v(r.rec), v(r.local)])].concat(S.recebidos.some(r => r.desc) ? [] : [['—', '', '', '']]), [22, '*', 75, 170]));
     c.push(barra('2 – RELATÓRIO DE USO'));
     c.push(grade([[{ stack: [{ text: 'Como o(s) bem(ns) vem(êm) sendo usado(s)', bold: true }, { text: v(S.usoTxt), margin: [0, 2, 0, 0] }] }], [{ stack: [{ text: 'Benefícios alcançados', bold: true }, { text: v(S.benefTxt), margin: [0, 2, 0, 0] }] }], [{ stack: [{ text: 'Manutenção e custeio', bold: true }, { text: v(S.manutTxt), margin: [0, 2, 0, 0] }] }]], ['*']));
     c.push(barra('3 – REGISTRO FOTOGRÁFICO'));
