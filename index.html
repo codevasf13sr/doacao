@@ -11,6 +11,9 @@
   header { background:var(--azul); color:#fff; padding:14px 20px; }
   header h1 { margin:0; font-size:18px; font-weight:600; }
   header p { margin:2px 0 0; font-size:13px; opacity:.85; }
+  header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  header a.mod { color:#fff; border:1px solid rgba(255,255,255,.5); border-radius:6px; padding:6px 10px; font-size:13px; text-decoration:none; white-space:nowrap; }
+  header a.mod:hover { background:rgba(255,255,255,.12); }
   .proto { background:#fff4d6; color:#6b4a00; font-size:12.5px; padding:6px 20px; border-bottom:1px solid #f0dca6; }
   .wrap { max-width:860px; margin:0 auto; padding:18px 16px 60px; }
   .steps { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:14px; }
@@ -73,8 +76,9 @@
 </head>
 <body>
 <header>
-  <h1>Requerimento de Doação – Codevasf 13ª SR</h1>
-  <p>Assistente de preenchimento (Norma N-455)</p>
+  <div><h1>Requerimento de Doação – Codevasf 13ª SR</h1>
+  <p>Assistente de preenchimento (Norma N-455)</p></div>
+  <a class="mod" id="linkModelos" href="modelos/">📄 Modelos em Word</a>
 </header>
 <div class="proto" id="faixa">Versão de teste. Os dados digitados ficam só neste navegador e não são enviados a nenhum servidor.</div>
 <div class="wrap">
@@ -160,7 +164,7 @@ const ENQ_BENS = {
   III: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete; retroescavadeira. Com análise especial da Comissão de Doação: veículos trucados; caminhão compactador de resíduos sólidos.',
 };
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v2.0 (nov/2026)';
+const VERSAO = 'v2.1 (nov/2026)';
 
 // ---------------------------------------------------------------- estado
 const VAZIO = () => ({
@@ -475,13 +479,15 @@ let atual = 0;
 const INICIO = [{ t: 'Início', f: () => `
   <h2>Qual é o tipo de entidade?</h2><p class="sub">Escolha o formulário correspondente ao tipo de entidade.</p>
   <div class="gcards"><a class="gcard" href="#publica" style="text-decoration:none;color:inherit"><b>Entidade pública</b><div style="font-size:13px;margin-top:4px">Prefeituras, órgãos e entidades públicas, consórcios intermunicipais e distritos de irrigação</div></a>
-  <a class="gcard" href="#privada" style="text-decoration:none;color:inherit"><b>Entidade privada sem fins lucrativos</b><div style="font-size:13px;margin-top:4px">Associações, cooperativas e organizações da sociedade civil</div></a></div>` }];
+  <a class="gcard" href="#privada" style="text-decoration:none;color:inherit"><b>Entidade privada sem fins lucrativos</b><div style="font-size:13px;margin-top:4px">Associações, cooperativas e organizações da sociedade civil</div></a></div>
+  <div class="msg" style="background:var(--claro);color:var(--azul);margin-top:16px;font-size:14px">📄 <b>Prefere preencher em Word?</b> Baixe os modelos, os questionários técnicos e o checklist de entrega na página de <a href="modelos/">modelos para download</a>.</div>` }];
 let ETAPAS = INICIO;
 function cabecalho() {
   document.getElementById('faixa').textContent = `Versão de teste – formulário ${VERSAO}. Os dados digitados ficam só neste navegador e não são enviados a nenhum servidor.`;
   ETAPAS = TIPO === 'pub' ? ETAPAS_PUB : TIPO === 'priv' ? ETAPAS_PRIV : INICIO;
   document.querySelector('header p').textContent = TIPO === 'pub' ? 'Assistente de preenchimento para entidades públicas (Norma N-455)' : TIPO === 'priv' ? 'Assistente de preenchimento para entidades privadas sem fins lucrativos (Norma N-455)' : 'Assistente de preenchimento (Norma N-455)';
   document.querySelector('.nav').style.display = TIPO ? 'flex' : 'none';
+  document.getElementById('linkModelos').href = 'modelos/' + (TIPO === 'pub' ? '#publica' : TIPO === 'priv' ? '#privada' : '');
 }
 window.addEventListener('hashchange', () => { TIPO = location.hash === '#publica' ? 'pub' : location.hash === '#privada' ? 'priv' : ''; FOTOS = []; ARQ_ASSOC = null; carregar(); atual = 0; cabecalho(); render(); window.scrollTo(0, 0); });
 function render() {
