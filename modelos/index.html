@@ -48,7 +48,7 @@
 <body>
 <header>
   <div><h1>Modelos para pedido de doação – Codevasf 13ª SR</h1><p>Norma N-455 · arquivos em Word para baixar, preencher e assinar</p></div>
-  <a id="linkForm" href="../">📝 Preencher on-line</a>
+  <a id="linkForm" href="../index.html">📝 Preencher on-line</a>
 </header>
 <div class="faixa" id="faixa"></div>
 <div class="wrap">
@@ -61,7 +61,7 @@
   <footer>Dúvidas: Gabinete da 13ª Superintendência Regional da Codevasf – João Pessoa/PB · Telefone (61) 99298-0403</footer>
 </div>
 <script>
-const VERSAO = 'v2.1 (nov/2026)';
+const VERSAO = 'v2.3 (nov/2026)';
 const PROTOCOLO = 'https://www.gov.br/codevasf/pt-br/servicos/protocolo-digital';
 const item = (arq, titulo, desc, cond, destaque) => `<div class="item${destaque ? ' destaque' : ''}"><div class="tx"><div class="tt">${titulo}${cond ? ` <span class="cond">(${cond})</span>` : ''}</div>${desc ? `<div class="ds">${desc}</div>` : ''}</div><a class="dl" href="${arq}" download>⬇ Baixar</a></div>`;
 const QUEST = [
@@ -99,7 +99,7 @@ const TELAS = {
     <h3>3. Questionário técnico do bem <span class="cond">(baixe só o do bem pedido)</span></h3>
     <div class="grid">${QUEST.map(([s, n, d]) => `<a href="publica/questionarios/Questionario_Tecnico_${s}.docx" download>⬇ ${n}${d ? `<span>${d}</span>` : ''}</a>`).join('')}</div>
     ${comoPreencher}
-    <div class="msg">Prefere não usar o Word? O <a href="../#publica">formulário on-line</a> faz as mesmas perguntas e gera os documentos em PDF prontos para assinar.</div>`,
+    <div class="msg">Prefere não usar o Word? O <a href="../index.html#publica">formulário on-line</a> faz as mesmas perguntas e gera os documentos em PDF prontos para assinar.</div>`,
   privada: () => { const g = GRUPOS[grupo]; return `<h2>Entidade privada sem fins lucrativos</h2><p class="sub">Escolha o grupo. O grupo é definido pelo <b>bem pedido</b>: se a entidade atende a um grupo maior, mas pede só bens permitidos em um grupo menor, use os modelos do grupo menor.</p>
     <div class="gsel">${Object.entries(GRUPOS).map(([k, x]) => `<button data-g="${k}" class="${k === grupo ? 'on' : ''}">Grupo ${k}<small>${x.req}</small></button>`).join('')}</div>
     <div class="msg" style="margin-top:6px"><b>Bens do Grupo ${grupo}:</b> ${g.bens}</div>
@@ -110,7 +110,7 @@ const TELAS = {
     ${item(`privada/grupo-${grupo}/Plano_de_Uso_Anexo_H_Privada_Grupo_${grupo}.docx`, `Plano de Uso do Bem – Anexo H – Grupo ${grupo}`, 'Arquivo próprio, assinado. Inclui a relação de associados (nome e CPF).')}
     ${item('privada/Anexo_Relatorio_Uso_e_Fotos.docx', 'Anexo – Relatório de uso e fotos', 'Uso dos bens já recebidos, onde estão e fotos.', 'somente se já recebeu bens da Codevasf')}
     ${comoPreencher}
-    <div class="msg">Depois do protocolo, a Codevasf fará visita técnica à entidade. Prefere não usar o Word? O <a href="../#privada">formulário on-line</a> gera os documentos em PDF prontos para assinar.</div>`; },
+    <div class="msg">Depois do protocolo, a Codevasf fará visita técnica à entidade. Prefere não usar o Word? O <a href="../index.html#privada">formulário on-line</a> gera os documentos em PDF prontos para assinar.</div>`; },
   apos: () => `<h2>Após a aprovação da doação</h2><p class="sub">Documentos usados depois que a doação é aprovada.</p>
     ${item('apos/Anexo_L_Autorizacao_de_Retirada_de_Bem_Doado.docx', 'Autorização de retirada de bem doado – Anexo L', 'Autoriza uma pessoa a retirar o bem no pátio da Codevasf. Emitir preferencialmente em papel timbrado da entidade, com firma reconhecida em cartório. Preencha os campos em amarelo.')}`,
 };
@@ -119,7 +119,7 @@ function mostrar() {
   const tela = TELAS[t] ? t : 'publica';
   document.querySelectorAll('.tab').forEach(a => a.classList.toggle('on', a.dataset.t === tela));
   document.getElementById('card').innerHTML = TELAS[tela]();
-  document.getElementById('linkForm').href = '../' + (tela === 'privada' ? '#privada' : tela === 'publica' ? '#publica' : '');
+  document.getElementById('linkForm').href = '../index.html' + (tela === 'privada' ? '#privada' : tela === 'publica' ? '#publica' : '');
 }
 document.getElementById('card').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (b) { grupo = b.dataset.g; mostrar(); } });
 window.addEventListener('hashchange', mostrar);
