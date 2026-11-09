@@ -61,7 +61,7 @@
   <footer>Dúvidas: Gabinete da 13ª Superintendência Regional da Codevasf – João Pessoa/PB · Telefone (61) 99298-0403</footer>
 </div>
 <script>
-const VERSAO = 'v2.3 (nov/2026)';
+const VERSAO = 'v2.4 (nov/2026)';
 const PROTOCOLO = 'https://www.gov.br/codevasf/pt-br/servicos/protocolo-digital';
 const item = (arq, titulo, desc, cond, destaque) => `<div class="item${destaque ? ' destaque' : ''}"><div class="tx"><div class="tt">${titulo}${cond ? ` <span class="cond">(${cond})</span>` : ''}</div>${desc ? `<div class="ds">${desc}</div>` : ''}</div><a class="dl" href="${arq}" download>⬇ Baixar</a></div>`;
 const QUEST = [
@@ -119,7 +119,9 @@ function mostrar() {
   const tela = TELAS[t] ? t : 'publica';
   document.querySelectorAll('.tab').forEach(a => a.classList.toggle('on', a.dataset.t === tela));
   document.getElementById('card').innerHTML = TELAS[tela]();
-  document.getElementById('linkForm').href = '../index.html' + (tela === 'privada' ? '#privada' : tela === 'publica' ? '#publica' : '');
+  // sem aba escolhida (veio da página inicial): volta para a página inicial do formulário
+  const escolhida = location.hash === '#publica' || location.hash === '#privada';
+  document.getElementById('linkForm').href = '../index.html' + (escolhida ? location.hash : '');
 }
 document.getElementById('card').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (b) { grupo = b.dataset.g; mostrar(); } });
 window.addEventListener('hashchange', mostrar);
