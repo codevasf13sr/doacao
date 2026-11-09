@@ -160,7 +160,7 @@ const ENQ_BENS = {
   III: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete; retroescavadeira. Com análise especial da Comissão de Doação: veículos trucados; caminhão compactador de resíduos sólidos.',
 };
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v1.9 (nov/2026)';
+const VERSAO = 'v2.0 (nov/2026)';
 
 // ---------------------------------------------------------------- estado
 const VAZIO = () => ({
@@ -1242,7 +1242,8 @@ const QBEM = {
   [B.kcost]: ['kits', 'costura'], [B.barr]: ['feira'],
 };
 const QORD = Object.keys(QDEF);
-function blocosQ() { const s = new Set(); bensSel().forEach(b => (QBEM[b.nome] || []).forEach(q => s.add(q))); return QORD.filter(q => s.has(q)); }
+// questionário técnico: só entidades públicas (nas privadas, as informações são coletadas na visita técnica)
+function blocosQ() { if (TIPO !== 'pub') return []; const s = new Set(); bensSel().forEach(b => (QBEM[b.nome] || []).forEach(q => s.add(q))); return QORD.filter(q => s.has(q)); }
 // campos de caixas de seleção dos quais outras perguntas dependem (exigem redesenhar a tela)
 const QDEP = new Set(Object.values(QDEF).flatMap(d => d.itens.filter(it => it.se).map(it => it.se[0])));
 const qLabel = it => typeof it.l === 'function' ? it.l(TIPO === 'pub') : it.l;
@@ -1286,7 +1287,7 @@ function anexoQuestionario(c) {
   c.push(grade([[{ text: 'Nome / cargo / telefone', bold: true }, `${v(S.qResp)} / ${v(S.qRespCargo)} / ${v(S.qRespTel)}`], [{ text: 'Outras informações', bold: true }, v(S.qOutras)]], [230, '*']));
 }
 // insere a etapa nos dois caminhos, logo depois do Plano de uso
-[ETAPAS_PRIV, ETAPAS_PUB].forEach(E => { const i = E.findIndex(e => e.t === 'Plano de uso'); E.splice(i + 1, 0, { t: 'Questionário', f: etapaQuestionario }); });
+[ETAPAS_PUB].forEach(E => { const i = E.findIndex(e => e.t === 'Plano de uso'); E.splice(i + 1, 0, { t: 'Questionário', f: etapaQuestionario }); });
 
 cabecalho();
 render();
