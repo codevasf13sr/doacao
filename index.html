@@ -118,7 +118,8 @@ const TAB = [
   ['Veículo de carga (VLC, ¾, toco ou caminhonete)', TR, 'Veículos'],
   ['Caminhão frigorífico', TR, 'Veículos'],
   ['Caminhão munck (guindauto)', TR, 'Veículos'],
-  ['Caminhão basculante', { III: 'C' }, 'Veículos'],
+  ['Caminhão basculante toco', TR, 'Veículos'],
+  ['Caminhão basculante trucado', { III: 'C' }, 'Veículos'],
   ['Veículo trucado (outros)', { III: 'C' }, 'Veículos'],
   ['Caminhão compactador de resíduos sólidos', { III: 'C' }, 'Veículos'],
   ['Caminhão-pipa', {}, 'Veículos'],
@@ -159,7 +160,7 @@ const ENQ_BENS = {
   III: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete; retroescavadeira. Com análise especial da Comissão de Doação: veículos trucados; caminhão compactador de resíduos sólidos.',
 };
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v1.8 (nov/2026)';
+const VERSAO = 'v1.9 (nov/2026)';
 
 // ---------------------------------------------------------------- estado
 const VAZIO = () => ({
@@ -1019,7 +1020,7 @@ const B = {
   kcom: 'Kit de comercialização (balança, freezers e mesa inox)', kpes: 'Kit de comercialização de pescado', kleite: 'Kit de pecuária leiteira',
   kmel: 'Kit de beneficiamento de mel', kapi: 'Kit de apicultura', kcost: 'Kit de corte e costura / máquinas de costura', barr: 'Barracas de feira livre',
   carga: 'Veículo de carga (VLC, ¾, toco ou caminhonete)', frigo: 'Caminhão frigorífico', munck: 'Caminhão munck (guindauto)',
-  basc: 'Caminhão basculante', comp: 'Caminhão compactador de resíduos sólidos', pipa: 'Caminhão-pipa',
+  basc: 'Caminhão basculante toco', bascT: 'Caminhão basculante trucado', comp: 'Caminhão compactador de resíduos sólidos', pipa: 'Caminhão-pipa',
   retro: 'Retroescavadeira', pa: 'Pá carregadeira', escav: 'Escavadeira hidráulica', moto: 'Motoniveladora', rolo: 'Rolo compactador',
 };
 // cada item: k (campo), l (pergunta; função p => texto se público), t (radio|checks|text|num|area|nota), o (opções),
@@ -1236,7 +1237,7 @@ const QDEF = {
 const QBEM = {
   [B.tr]: ['trator'], [B.tri]: ['trator'], [B.imp]: ['trator'], [B.micro]: ['trator'], [B.ens]: ['trator'],
   [B.retro]: ['amarela'], [B.pa]: ['amarela'], [B.escav]: ['amarela'], [B.moto]: ['amarela'], [B.rolo]: ['amarela'],
-  [B.basc]: ['basculante'], [B.carga]: ['carga'], [B.frigo]: ['carga'], [B.munck]: ['carga'], [B.pipa]: ['pipa'], [B.comp]: ['compactador'],
+  [B.basc]: ['basculante'], [B.bascT]: ['basculante'], [B.carga]: ['carga'], [B.frigo]: ['carga'], [B.munck]: ['carga'], [B.pipa]: ['pipa'], [B.comp]: ['compactador'],
   [B.kcom]: ['kits'], [B.kpes]: ['kits', 'pescado'], [B.kleite]: ['kits', 'leite'], [B.kmel]: ['kits', 'mel'], [B.kapi]: ['kits', 'apicultura'],
   [B.kcost]: ['kits', 'costura'], [B.barr]: ['feira'],
 };
