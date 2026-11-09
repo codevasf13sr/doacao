@@ -97,17 +97,40 @@ const GRUPOS = {
 };
 // Tabela 02 do Anexo B: E = elegível; C = elegível condicionalmente (análise especial da Comissão)
 const BASE = { I: 'E', II: 'E', III: 'E' };
+const TR = { I: 'C', II: 'E', III: 'E' };
+// [nome, elegibilidade por grupo (entidade privada), categoria]
 const TAB = [
-  ['Itens de inclusão produtiva', BASE], ['Equipamentos de irrigação', BASE], ['Tubos', BASE],
-  ['Equipamentos de acumulação de água', BASE], ['Equipamentos de dessedentação animal', BASE], ['Microtrator', BASE],
-  ['Trator e implementos', { I: 'C', II: 'E', III: 'E' }],
-  ['Veículo de carga (VLC, ¾, toco ou caminhonete)', { I: 'C', II: 'E', III: 'E' }],
-  ['Retroescavadeira', { III: 'E' }],
-  ['Veículo trucado', { III: 'C' }],
-  ['Caminhão compactador de resíduos sólidos', { III: 'C' }],
-  ['Pá carregadeira', {}],
-  ['Caminhão-pipa', {}],
+  ['Trator agrícola (somente o trator)', TR, 'Mecanização agrícola'],
+  ['Trator agrícola com implementos', TR, 'Mecanização agrícola'],
+  ['Implementos agrícolas (para trator que já possui)', TR, 'Mecanização agrícola'],
+  ['Microtrator', BASE, 'Mecanização agrícola'],
+  ['Ensiladeira / picadeira forrageira', BASE, 'Mecanização agrícola'],
+  ['Kit de comercialização (balança, freezers e mesa inox)', BASE, 'Kits e itens de inclusão produtiva'],
+  ['Kit de comercialização de pescado', BASE, 'Kits e itens de inclusão produtiva'],
+  ['Kit de pecuária leiteira', BASE, 'Kits e itens de inclusão produtiva'],
+  ['Kit de beneficiamento de mel', BASE, 'Kits e itens de inclusão produtiva'],
+  ['Kit de apicultura', BASE, 'Kits e itens de inclusão produtiva'],
+  ['Kit de corte e costura / máquinas de costura', BASE, 'Kits e itens de inclusão produtiva'],
+  ['Barracas de feira livre', BASE, 'Kits e itens de inclusão produtiva'],
+  ['Outros itens de inclusão produtiva', BASE, 'Kits e itens de inclusão produtiva'],
+  ['Equipamentos de irrigação', BASE, 'Água e irrigação'], ['Tubos', BASE, 'Água e irrigação'],
+  ['Equipamentos de acumulação de água', BASE, 'Água e irrigação'], ['Equipamentos de dessedentação animal', BASE, 'Água e irrigação'],
+  ['Veículo de carga (VLC, ¾, toco ou caminhonete)', TR, 'Veículos'],
+  ['Caminhão frigorífico', TR, 'Veículos'],
+  ['Caminhão munck (guindauto)', TR, 'Veículos'],
+  ['Caminhão basculante', { III: 'C' }, 'Veículos'],
+  ['Veículo trucado (outros)', { III: 'C' }, 'Veículos'],
+  ['Caminhão compactador de resíduos sólidos', { III: 'C' }, 'Veículos'],
+  ['Caminhão-pipa', {}, 'Veículos'],
+  ['Retroescavadeira', { III: 'E' }, 'Máquinas pesadas (linha amarela)'],
+  ['Pá carregadeira', {}, 'Máquinas pesadas (linha amarela)'],
+  ['Escavadeira hidráulica', {}, 'Máquinas pesadas (linha amarela)'],
+  ['Motoniveladora', {}, 'Máquinas pesadas (linha amarela)'],
+  ['Rolo compactador', {}, 'Máquinas pesadas (linha amarela)'],
 ];
+const CAT = Object.fromEntries(TAB.map(x => [x[0], x[2]]));
+// título de categoria antes do primeiro bem de cada grupo da lista
+const cabCat = (n, i, arr) => { const c = n === '__outro' ? 'Outro' : CAT[n]; const a = i ? (arr[i - 1] === '__outro' ? 'Outro' : CAT[arr[i - 1]]) : null; return c !== a && c !== 'Outro' ? `<h3 style="margin:14px 0 6px">${c}</h3>` : ''; };
 const ORD = ['I', 'II', 'III'];
 // perfil da entidade: maior grupo que o tempo de CNPJ e o nº de associados permitem (vale o de menor porte)
 function PERFIL() {
@@ -136,7 +159,7 @@ const ENQ_BENS = {
   III: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete; retroescavadeira. Com análise especial da Comissão de Doação: veículos trucados; caminhão compactador de resíduos sólidos.',
 };
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v1.6 (nov/2026)';
+const VERSAO = 'v1.8 (nov/2026)';
 
 // ---------------------------------------------------------------- estado
 const VAZIO = () => ({
@@ -227,7 +250,7 @@ const ETAPAS_PRIV = [
   { t: 'Pedido', f: () => `
     <h2>O que a entidade está pedindo?</h2><p class="sub">Marque o(s) bem(ns) e informe a quantidade e para que será usado. Aparecem só os bens que o perfil da entidade permite.</p>
     ${!PERFIL() ? '<div class="msg warn">Preencha a data de abertura do CNPJ e o número de associados na etapa Perfil para ver os bens que a entidade pode pedir.</div>' : ''}
-    ${PERFIL() ? TAB.filter(([n]) => melhor(n)).map(([n]) => [n, melhor(n)]).concat([['__outro', { g: PERFIL(), cond: false }]]).map(([n, m]) => { const v = S.bens[n] || {}; return `
+    ${PERFIL() ? TAB.filter(([n]) => melhor(n)).map(([n]) => [n, melhor(n)]).concat([['__outro', { g: PERFIL(), cond: false }]]).map(([n, m], i, arr) => { const v = S.bens[n] || {}; return `${cabCat(n, i, arr.map(x => x[0]))}
       <div class="bem"><div class="bh"><label class="opt ${v.on ? 'sel' : ''}" style="flex:1"><input type="checkbox" data-bem="${esc(n)}" ${v.on ? 'checked' : ''}>${n === '__outro' ? 'Outro bem' : esc(n)} ${m.cond ? '<small>(análise especial da Comissão)</small>' : ''}</label></div>
       ${v.on ? `<div class="row" style="margin-top:6px">${n === '__outro' ? `<div><label class="f">Qual bem?</label><input type="text" data-k="outroBem" value="${esc(S.outroBem)}"></div>` : ''}<div style="max-width:140px"><label class="f">Quantidade</label><input type="number" min="1" data-bq="${esc(n)}" value="${esc(v.qtd || '1')}"></div><div style="grid-column:span 2"><label class="f">Para que será usado?</label><input type="text" data-bf="${esc(n)}" value="${esc(v.fin || '')}" placeholder="Ex.: preparo do solo para plantio de milho e feijão"></div></div>` : ''}</div>`; }).join('') : ''}
     ${bensSel().length ? `<div class="msg ok" style="margin-top:12px"><b>Para este pedido, a entidade será analisada como ${GRUPOS[GR()].rotulo}</b>${GR() !== PERFIL() ? ` (o perfil permite até o ${GRUPOS[PERFIL()].rotulo}, mas os bens escolhidos só exigem o ${GRUPOS[GR()].rotulo})` : ''}. As próximas etapas e os documentos seguem as exigências desse grupo.</div>` : ''}
@@ -330,7 +353,7 @@ const ETAPAS_PRIV = [
 
 function docsLista() {
   const d = ['Plano de Uso do Bem – Anexo H (arquivo próprio, assinado)', 'Comprovante de inscrição no CNPJ', 'Estatuto social registrado/autenticado em cartório', 'Ata de eleição e posse da diretoria atual', 'RG/CNH, CPF e comprovante de residência do representante (até 90 dias)', 'Certidões: FGTS, Receita Federal/PGFN e Débitos Trabalhistas'];
-  if (GR() === 'III') { d.push('Extrato bancário do fundo de reserva ≥ 2% do valor do bem', 'Comprovante de sede/escritório em funcionamento'); if (temBem('retroescavadeira')) d.push('Balanço patrimonial/social com fundo de custeio (retroescavadeira)'); if (temBem('compactador')) d.push('Plano de Gestão de Resíduos Sólidos (compactador)'); }
+  if (GR() === 'III') { d.push('Extrato bancário do fundo de reserva ≥ 2% do valor do bem', 'Comprovante de sede/escritório em funcionamento'); if (temBem('retroescavadeira')) d.push('Balanço patrimonial/social com fundo de custeio (retroescavadeira)'); if (temBem('caminhão compactador')) d.push('Plano de Gestão de Resíduos Sólidos (compactador)'); }
   if (S.recebeu === 'Sim') d.push('Relatório de uso e fotos de bens já recebidos (anexo ao Plano de Uso)');
   return d;
 }
@@ -388,6 +411,7 @@ function revisao() {
   <button class="btn big" id="gReq">📄 Gerar Requerimento (PDF)</button>
   <button class="btn big" id="gPlano">📄 Gerar Plano de Uso${S.recebeu === 'Sim' ? ' + relatório e fotos' : ''} (PDF)</button>
   <div class="status" id="status"></div>
+  ${lembreteDocs()}
   <p class="hint" style="margin-top:12px">Os PDFs saem prontos para assinatura no gov.br (assinador.iti.br). Para corrigir algo, volte à etapa, ajuste e gere de novo.</p>`;
 }
 
@@ -421,21 +445,29 @@ function docsJuntar() {
   const d = [['Comprovante de inscrição no CNPJ', 'Obrigatório'], ['Estatuto social registrado/autenticado em cartório', 'Obrigatório'], ['Ata de eleição e posse da diretoria atual', 'Obrigatório'], ['RG/CNH e CPF do representante legal', 'Obrigatório'], ['Comprovante de residência do representante legal (até 90 dias)', 'Obrigatório'], ['Certidões: FGTS, Receita Federal/PGFN e Débitos Trabalhistas', 'Obrigatório']];
   if (GR() === 'III' && bensSel().length) { d.push(['Extrato bancário do fundo de reserva de, no mínimo, 2% do valor do bem', 'Obrigatório (Grupo III)'], ['Comprovante de sede ou escritório em funcionamento', 'Obrigatório (Grupo III)']); }
   if (temBem('retroescavadeira')) d.push(['Balanço patrimonial e/ou social com fundo de custeio', 'Obrigatório (retroescavadeira)']);
-  if (temBem('compactador')) d.push(['Plano de Gestão de Resíduos Sólidos', 'Obrigatório (caminhão compactador)']);
+  if (temBem('caminhão compactador')) d.push(['Plano de Gestão de Resíduos Sólidos', 'Obrigatório (caminhão compactador)']);
   return d;
 }
 function blocoDocsTela() {
+  const J = docsJuntar();
   return `<h3>Documentos do pedido</h3>
   <p style="margin:6px 0 4px;font-weight:600;font-size:14px">Gerados por este formulário</p>
   <ul style="margin:0 0 10px;padding-left:4px;list-style:none;font-size:14px">${docsGerados().map(d => `<li style="margin:3px 0">✅ ${esc(d)} <span class="hint">– gerado automaticamente</span></li>`).join('')}</ul>
-  <p style="margin:6px 0 4px;font-weight:600;font-size:14px">Documentos que devem ser juntados ao requerimento</p>
-  <table class="lst">${docsJuntar().map(([d, r]) => `<tr><td>${esc(d)}</td><td style="width:210px;color:${r.startsWith('Obrig') ? 'var(--azul)' : 'var(--cinza)'}">${esc(r)}</td></tr>`).join('')}</table>`;
+  <div style="border:3px solid var(--erro);background:#fff1f0;border-radius:10px;padding:14px 16px;margin:14px 0">
+    <div style="font-size:17px;font-weight:700;color:var(--erro);margin-bottom:4px">📎 ATENÇÃO: anexe também estes ${J.length} documentos</div>
+    <div style="font-size:14px;margin-bottom:10px">Eles <b>não são gerados</b> pelo formulário. Providencie cada um e anexe ao processo <b>junto com o requerimento e o plano de uso assinados</b>. <b>Sem eles, o pedido não será analisado.</b></div>
+    <table class="lst" style="background:#fff">${J.map(([d, r], i) => `<tr><td style="width:34px;font-weight:700;color:var(--erro);text-align:center">${i + 1}</td><td style="font-weight:600">☐ ${esc(d)}</td><td style="width:200px;color:var(--erro);font-size:13px">${esc(r)}</td></tr>`).join('')}</table>
+  </div>`;
 }
+const lembreteDocs = () => `<div style="border:2px dashed var(--erro);background:#fff1f0;color:var(--erro);border-radius:8px;padding:10px 12px;margin:12px 0;font-size:14px"><b>📎 Lembrete:</b> depois de assinar os PDFs, envie-os <b>junto com os ${docsJuntar().length} documentos da lista “ATENÇÃO”</b> acima. O requerimento também traz essa lista em destaque.</div>`;
 function parteIII(c) {
+  const J = docsJuntar(), V = '#B42318';
   c.push({ text: 'Documentos gerados pelo formulário:', bold: true, fontSize: 9, margin: [0, 0, 0, 2] });
-  c.push({ ul: docsGerados(), fontSize: 8.8, margin: [10, 0, 0, 4] });
-  c.push({ text: 'Documentos que acompanham este requerimento:', bold: true, fontSize: 9, margin: [0, 2, 0, 2] });
-  c.push({ ul: docsJuntar().map(([d, r]) => ({ text: [d, { text: `  (${r.toLowerCase()})`, color: '#555', italics: true }] })), fontSize: 8.8, margin: [10, 0, 0, 0] });
+  c.push({ ul: docsGerados(), fontSize: 8.8, margin: [10, 0, 0, 6] });
+  c.push({ table: { widths: [18, '*', 110], headerRows: 1, body: [
+      [{ text: [{ text: 'DOCUMENTOS OBRIGATÓRIOS QUE DEVEM SER ANEXADOS A ESTE REQUERIMENTO\n', bold: true, fontSize: 9.5 }, { text: 'Não são gerados pelo formulário. Sem eles, o pedido não será analisado.', fontSize: 8.5, italics: true }], colSpan: 3, fillColor: '#FDE7E5', color: V, alignment: 'center', margin: [0, 3, 0, 3] }, {}, {}],
+      ...J.map(([d, r], i) => [{ text: String(i + 1), bold: true, color: V, alignment: 'center' }, { text: d, bold: true }, { text: r, color: V, fontSize: 8.3 }]),
+    ] }, layout: { hLineColor: () => V, vLineColor: () => V, hLineWidth: (i, n) => (i === 0 || i === n.table.body.length ? 1.5 : 0.5), vLineWidth: (i, n) => (i === 0 || i === n.table.widths.length ? 1.5 : 0.5), paddingTop: () => 2.5, paddingBottom: () => 2.5 }, fontSize: 8.8, margin: [0, 0, 0, 4] });
 }
 // ---------------------------------------------------------------- render e eventos
 let atual = 0;
@@ -483,7 +515,7 @@ card.addEventListener('input', e => {
 card.addEventListener('change', e => {
   const t = e.target;
   if (t.type === 'radio' && t.dataset.k) { S[t.dataset.k] = t.value; salvar(); render(); return; }
-  if (t.dataset.arr) { const a = S[t.dataset.arr] || (S[t.dataset.arr] = []); const i = a.indexOf(t.value); if (t.checked && i < 0) a.push(t.value); if (!t.checked && i >= 0) a.splice(i, 1); salvar(); t.closest('.opt').classList.toggle('sel', t.checked); return; }
+  if (t.dataset.arr) { const a = S[t.dataset.arr] || (S[t.dataset.arr] = []); const i = a.indexOf(t.value); if (t.checked && i < 0) a.push(t.value); if (!t.checked && i >= 0) a.splice(i, 1); salvar(); if (typeof QDEP !== 'undefined' && QDEP.has(t.dataset.arr)) { render(); return; } t.closest('.opt').classList.toggle('sel', t.checked); return; }
   if (t.dataset.bool) { S[t.dataset.bool] = t.checked; salvar(); render(); return; }
   if (t.dataset.bem) { const n = t.dataset.bem; S.bens[n] = Object.assign(S.bens[n] || { qtd: '1', fin: '' }, { on: t.checked }); salvar(); render(); return; }
   if (t.id === 'fileIn') { addFotos(t.files); return; }
@@ -751,12 +783,12 @@ function gerar(tipo) {
 // ================================================================ ENTIDADE PÚBLICA (Grupo IV)
 const ATIV_PUB = ['Agricultura', 'Pecuária', 'Apicultura', 'Pesca / aquicultura', 'Extrativismo', 'Beneficiamento', 'Abastecimento de água', 'Estradas vicinais', 'Limpeza urbana'];
 const etapaPriv = t => ETAPAS_PRIV.find(e => e.t === t).f;
-const temCompactador = () => TIPO === 'pub' && temBem('compactador');
+const temCompactador = () => TIPO === 'pub' && temBem('caminhão compactador');
 
 const ETAPAS_PUB = [
   { t: 'Pedido', f: () => `
     <h2>O que o órgão ou entidade está pedindo?</h2><p class="sub">Entidades públicas (Grupo IV) podem pedir qualquer bem adquirido para doação. Marque o(s) bem(ns) e informe a quantidade e para que será usado.</p>
-    ${TAB.map(([n]) => n).concat(['__outro']).map(n => { const v = S.bens[n] || {}; return `
+    ${TAB.map(([n]) => n).concat(['__outro']).map((n, i, arr) => { const v = S.bens[n] || {}; return `${cabCat(n, i, arr)}
       <div class="bem"><div class="bh"><label class="opt ${v.on ? 'sel' : ''}" style="flex:1"><input type="checkbox" data-bem="${esc(n)}" ${v.on ? 'checked' : ''}>${n === '__outro' ? 'Outro bem' : esc(n)}</label></div>
       ${v.on ? `<div class="row" style="margin-top:6px">${n === '__outro' ? `<div><label class="f">Qual bem?</label><input type="text" data-k="outroBem" value="${esc(S.outroBem)}"></div>` : ''}<div style="max-width:140px"><label class="f">Quantidade</label><input type="number" min="1" data-bq="${esc(n)}" value="${esc(v.qtd || '1')}"></div><div style="grid-column:span 2"><label class="f">Para que será usado?</label><input type="text" data-bf="${esc(n)}" value="${esc(v.fin || '')}" placeholder="Ex.: preparo do solo para os agricultores familiares do município"></div></div>` : ''}</div>`; }).join('')}
     ${temCompactador() ? '<div class="msg warn" style="margin-top:10px">Para caminhão compactador, o formulário vai pedir também o Plano Simplificado de Gestão de Resíduos Sólidos (etapa Resíduos).</div>' : ''}
@@ -853,6 +885,7 @@ function revisaoPub() {
   <button class="btn big" id="gPlano">📄 Gerar Plano de Uso${S.recebeu === 'Sim' ? ' + relatório e fotos' : ''} (PDF)</button>
   ${temCompactador() ? '<button class="btn big" id="gRes">📄 Gerar Plano Simplificado de Gestão de Resíduos Sólidos (PDF)</button>' : ''}
   <div class="status" id="status"></div>
+  ${lembreteDocs()}
   <p class="hint" style="margin-top:12px">Os PDFs saem prontos para assinatura no gov.br (assinador.iti.br). Para corrigir algo, volte à etapa, ajuste e gere de novo.</p>`;
 }
 
@@ -977,45 +1010,105 @@ function docRequerimentoPub() {
 }
 
 // ================================================================ QUESTIONÁRIOS TÉCNICOS POR BEM (amostra)
-const ANO = new Date().getFullYear();
 // cada item: k (campo), l (pergunta; pode ser função p/ texto público x privado), t (radio|checks|text|num|area), o (opções), se: [campo, valor] (só aparece se)
+const ANO = new Date().getFullYear();
+// nomes dos bens (iguais aos da TAB)
+const B = {
+  tr: 'Trator agrícola (somente o trator)', tri: 'Trator agrícola com implementos', imp: 'Implementos agrícolas (para trator que já possui)',
+  micro: 'Microtrator', ens: 'Ensiladeira / picadeira forrageira',
+  kcom: 'Kit de comercialização (balança, freezers e mesa inox)', kpes: 'Kit de comercialização de pescado', kleite: 'Kit de pecuária leiteira',
+  kmel: 'Kit de beneficiamento de mel', kapi: 'Kit de apicultura', kcost: 'Kit de corte e costura / máquinas de costura', barr: 'Barracas de feira livre',
+  carga: 'Veículo de carga (VLC, ¾, toco ou caminhonete)', frigo: 'Caminhão frigorífico', munck: 'Caminhão munck (guindauto)',
+  basc: 'Caminhão basculante', comp: 'Caminhão compactador de resíduos sólidos', pipa: 'Caminhão-pipa',
+  retro: 'Retroescavadeira', pa: 'Pá carregadeira', escav: 'Escavadeira hidráulica', moto: 'Motoniveladora', rolo: 'Rolo compactador',
+};
+// cada item: k (campo), l (pergunta; função p => texto se público), t (radio|checks|text|num|area|nota), o (opções),
+// se: [campo, valor ou lista de valores] (só aparece se), bem: [bens] (só se algum desses bens foi pedido), pub/priv: só para público/privado
+const SN = ['Sim', 'Não'];
 const QDEF = {
   trator: {
-    titulo: 'Trator e implementos agrícolas', resp: 'preferencialmente o Secretário de Agricultura',
+    titulo: 'Mecanização agrícola (trator, implementos, ensiladeira)', resp: 'preferencialmente o Secretário de Agricultura',
     itens: [
-      { k: 'qtTem', l: p => p ? 'O município já possui tratores?' : 'A entidade já possui tratores?', t: 'radio', o: ['Sim', 'Não'] },
-      { k: 'qtTemDesc', l: 'Quantos e qual a potência (cv)?', t: 'text', se: ['qtTem', 'Sim'] },
-      { k: 'qtImpl', l: 'Possui implementos agrícolas?', t: 'radio', o: ['Sim', 'Não'] },
-      { k: 'qtImplQuais', l: 'Quais implementos possui?', t: 'checks', o: ['Grade aradora', 'Arado', 'Plantadeira', 'Carreta agrícola', 'Roçadeira', 'Sulcador'], se: ['qtImpl', 'Sim'] },
-      { k: 'qtServ', l: p => p ? 'Serviços que o município oferece com tratores' : 'Serviços que a entidade oferece com tratores', t: 'checks', o: ['Aração / gradagem', 'Plantio', 'Transporte da produção', 'Roçagem', 'Preparo de área para pastagem'] },
+      { k: 'qtImplPede', l: 'Quais implementos estão sendo pedidos?', t: 'checks', o: ['Grade aradora', 'Carreta agrícola', 'Batedeira de cereais', 'Arado', 'Plantadeira', 'Roçadeira', 'Sulcador', 'Outro'], bem: [B.tri, B.imp] },
+      { k: 'qtImplPedeOutro', l: 'Outro implemento pedido', t: 'text', se: ['qtImplPede', 'Outro'] },
+      { k: 'qtConsorcio', l: 'O pedido é feito por consórcio público?', t: 'radio', o: SN, pub: true },
+      { k: 'qtConsorcioMun', l: 'Municípios consorciados que serão atendidos', t: 'text', se: ['qtConsorcio', 'Sim'] },
+      { k: 'qtTem', l: p => p ? 'O município (ou consórcio) já possui tratores?' : 'A entidade já possui tratores?', t: 'radio', o: SN },
+      { k: 'qtTemDesc', l: 'Quantos e qual a potência bruta (cv)? Se consórcio, em quais municípios estão', t: 'text', se: ['qtTem', 'Sim'] },
+      { k: 'qtEnsil', l: 'Já possui ensiladeira / picadeira?', t: 'radio', o: SN, bem: [B.ens] },
+      { k: 'qtEnsilQtd', l: 'Quantas?', t: 'num', se: ['qtEnsil', 'Sim'] },
+      { k: 'qtImpl', l: 'Possui implementos agrícolas?', t: 'radio', o: SN },
+      { k: 'qtImplQuais', l: 'Quais implementos possui?', t: 'checks', o: ['Grade aradora', 'Arado', 'Plantadeira', 'Carreta agrícola', 'Roçadeira', 'Sulcador', 'Batedeira de cereais'], se: ['qtImpl', 'Sim'] },
+      { k: 'qtServ', l: p => p ? 'Serviços que o município já oferece com tratores e implementos' : 'Serviços que a entidade já oferece com tratores e implementos', t: 'checks', o: ['Aração / gradagem', 'Plantio', 'Transporte da produção', 'Roçagem', 'Preparo de área para pastagem', 'Ensilagem / corte de forragem', 'Debulha de grãos'] },
       { k: 'qtServOutro', l: 'Outro serviço (se houver)', t: 'text' },
+      { k: 'qtSelecao', l: 'Como é selecionado o público atendido?', t: 'text' },
       { k: 'qtFamAnt', l: `Famílias/produtores atendidos em ${ANO - 1}`, t: 'num' },
       { k: 'qtFamAtual', l: `Famílias/produtores atendidos em ${ANO}`, t: 'num' },
-      { k: 'qtOper', l: p => p ? 'O município possui operador de trator agrícola?' : 'A entidade possui operador de trator agrícola?', t: 'radio', o: ['Sim', 'Não'] },
+      { k: 'qtOper', l: p => p ? 'O município possui operador de trator agrícola?' : 'A entidade possui operador de trator agrícola?', t: 'radio', o: SN },
       { k: 'qtOperDesc', l: 'Quantos operadores e qual a experiência/capacitação?', t: 'text', se: ['qtOper', 'Sim'] },
       { k: 'qtOperPlano', l: 'Como pretende garantir um operador capacitado?', t: 'text', se: ['qtOper', 'Não'] },
-      { k: 'qtGratis', l: 'O serviço ao produtor é gratuito?', t: 'radio', o: ['Sim', 'Não'] },
+      { k: 'qtGratis', l: 'O serviço ao produtor é gratuito?', t: 'radio', o: SN },
       { k: 'qtCobranca', l: 'Como é cobrado (valor por hora, taxa etc.)?', t: 'text', se: ['qtGratis', 'Não'] },
-      { k: 'qtTerc', l: 'Contrata hoje esse serviço de terceiros?', t: 'radio', o: ['Sim', 'Não'] },
+      { k: 'qtTerc', l: 'Contrata hoje esse serviço de terceiros?', t: 'radio', o: SN },
       { k: 'qtTercCusto', l: 'Custo do serviço contratado (R$ por hora/máquina ou por mês)', t: 'text', se: ['qtTerc', 'Sim'] },
-      { k: 'qtCult', l: 'Culturas agrícolas prioritárias', t: 'checks', o: ['Milho', 'Feijão', 'Mandioca', 'Palma forrageira', 'Hortaliças', 'Fruticultura', 'Algodão'] },
+      { k: 'qtCult', l: 'Culturas agrícolas prioritárias', t: 'checks', o: ['Milho', 'Feijão', 'Mandioca', 'Palma forrageira', 'Capim / sorgo forrageiro', 'Hortaliças', 'Fruticultura', 'Algodão'] },
       { k: 'qtArea', l: 'Tamanho médio das áreas de cultivo (ha)', t: 'num' },
     ],
   },
   amarela: {
-    titulo: 'Máquinas da linha amarela (retroescavadeira, pá carregadeira)', resp: 'preferencialmente o Secretário de Infraestrutura',
+    titulo: 'Máquinas pesadas (linha amarela)', resp: 'preferencialmente o Secretário de Infraestrutura',
     itens: [
-      { k: 'qaPatr', l: p => p ? 'Existe patrulha mecanizada na prefeitura?' : 'A entidade já possui máquinas ou patrulha mecanizada?', t: 'radio', o: ['Sim', 'Não'] },
-      { k: 'qaPatrDesc', l: 'Quais máquinas, quantidade e custo médio anual de manutenção', t: 'area', se: ['qaPatr', 'Sim'] },
-      { k: 'qaOper', l: 'Existe operador capacitado para a máquina solicitada?', t: 'radio', o: ['Sim', 'Não'] },
-      { k: 'qaOperDesc', l: 'Descreva a experiência do operador', t: 'text', se: ['qaOper', 'Sim'] },
+      { k: 'qaPatr', l: p => p ? 'Existe patrulha mecanizada na prefeitura?' : 'A entidade já possui máquinas ou patrulha mecanizada?', t: 'radio', o: SN },
+      { k: 'qaPatrQuais', l: 'Quais destas máquinas já possui?', t: 'checks', o: ['Retroescavadeira', 'Pá carregadeira', 'Escavadeira hidráulica', 'Motoniveladora', 'Rolo compactador', 'Caminhão-pipa', 'Grade de discos'], se: ['qaPatr', 'Sim'] },
+      { k: 'qaPatrDesc', l: 'Quantidade, ano de fabricação e custo médio anual de manutenção', t: 'area', se: ['qaPatr', 'Sim'] },
+      { k: 'qaOper', l: 'Existe operador capacitado para a máquina solicitada?', t: 'radio', o: SN },
+      { k: 'qaOperDesc', l: 'Quantos operadores e qual a experiência?', t: 'text', se: ['qaOper', 'Sim'] },
       { k: 'qaOperPlano', l: 'Como pretende proceder para ter um operador capacitado?', t: 'text', se: ['qaOper', 'Não'] },
-      { k: 'qaBasc', l: 'Possui caminhão basculante próprio?', t: 'radio', o: ['Sim', 'Não'] },
+      { k: 'qaBasc', l: 'Possui caminhão basculante próprio?', t: 'radio', o: SN },
       { k: 'qaBascDesc', l: 'Quantidade e capacidade (m³)', t: 'text', se: ['qaBasc', 'Sim'] },
-      { k: 'qaServ', l: 'Serviços previstos nas áreas urbana e rural', t: 'checks', o: ['Recuperação de estradas vicinais', 'Limpeza de açudes e barreiros', 'Abertura de valas / adutoras', 'Limpeza urbana e remoção de entulho', 'Carregamento de material', 'Apoio a obras'] },
+      { k: 'qaServ', l: 'Serviços previstos nas áreas urbana e rural', t: 'checks', o: ['Recuperação de estradas vicinais', 'Nivelamento e conformação de estradas', 'Compactação de aterros e vias', 'Limpeza de açudes e barreiros', 'Construção e manutenção de barragens', 'Abertura de valas / adutoras', 'Limpeza urbana e remoção de entulho', 'Carregamento de material', 'Apoio a obras'] },
       { k: 'qaServOutro', l: 'Outro serviço (se houver)', t: 'text' },
-      { k: 'qaAluga', l: 'Aluga hoje esse tipo de máquina?', t: 'radio', o: ['Sim', 'Não'] },
-      { k: 'qaAlugaDesc', l: 'Frequência e custo do aluguel por ano', t: 'text', se: ['qaAluga', 'Sim'] },
+      { k: 'qaFreq', l: 'Frequência de trabalho prevista (dias por mês ou meses por ano)', t: 'text' },
+      { k: 'qaPrancha', l: 'Possui prancha (reboque) para transportar a máquina em longas distâncias?', t: 'radio', o: SN, bem: [B.escav, B.rolo, B.moto] },
+      { k: 'qaPranchaPlano', l: 'Como pretende transportar a máquina em distâncias maiores?', t: 'text', se: ['qaPrancha', 'Não'] },
+      { k: 'qaVizinhos', l: 'Há possibilidade de atender municípios vizinhos?', t: 'radio', o: SN, bem: [B.rolo, B.escav, B.moto], pub: true },
+      { k: 'qaVizinhosDesc', l: 'Quais municípios e uso anual previsto', t: 'text', se: ['qaVizinhos', 'Sim'] },
+      { k: 'qaAluga', l: 'Aluga hoje esse tipo de máquina?', t: 'radio', o: SN },
+      { k: 'qaAlugaDesc', l: 'Frequência e custo do aluguel (hora-máquina ou por ano)', t: 'text', se: ['qaAluga', 'Sim'] },
+    ],
+  },
+  basculante: {
+    titulo: 'Caminhão basculante', resp: 'preferencialmente o Secretário de Infraestrutura',
+    itens: [
+      { k: 'qbPatr', l: p => p ? 'Existe patrulha mecanizada na prefeitura?' : 'A entidade já possui máquinas ou caminhões?', t: 'radio', o: SN },
+      { k: 'qbNBasc', l: 'Nº de caminhões basculantes que já possui', t: 'num', se: ['qbPatr', 'Sim'] },
+      { k: 'qbNMoto', l: 'Nº de motoniveladoras', t: 'num', se: ['qbPatr', 'Sim'] },
+      { k: 'qbNPa', l: 'Nº de pás carregadeiras', t: 'num', se: ['qbPatr', 'Sim'] },
+      { k: 'qbOutros', l: 'Outras máquinas (tipo e quantidade)', t: 'text', se: ['qbPatr', 'Sim'] },
+      { k: 'qbServ', l: 'Serviços que o caminhão basculante mais vai realizar', t: 'checks', o: ['Transporte de material para estradas vicinais', 'Transporte de areia, brita e cascalho', 'Remoção de entulho e limpeza urbana', 'Recuperação de açudes e barreiros', 'Apoio a obras públicas'] },
+      { k: 'qbServOutro', l: 'Outro serviço (se houver)', t: 'text' },
+      { k: 'qbContrata', l: 'Contrata hoje algum desses serviços?', t: 'radio', o: SN },
+      { k: 'qbContrataDesc', l: 'Com que frequência e qual o custo?', t: 'text', se: ['qbContrata', 'Sim'] },
+      { k: 'qbEconomia', l: p => p ? 'Economia estimada para o município por ano com o caminhão (R$)' : 'Economia estimada para a entidade por ano com o caminhão (R$)', t: 'text' },
+    ],
+  },
+  carga: {
+    titulo: 'Caminhões de carga (carroceria, frigorífico, munck)', resp: 'preferencialmente o secretário da área que vai usar o caminhão',
+    itens: [
+      { k: 'qcTem', l: p => p ? 'O município já possui caminhão do mesmo tipo do pedido?' : 'A entidade já possui caminhão do mesmo tipo do pedido?', t: 'radio', o: SN },
+      { k: 'qcTemDesc', l: 'Quantidade, modelo, ano de fabricação e capacidade', t: 'text', se: ['qcTem', 'Sim'] },
+      { k: 'qcServ', l: 'Uso previsto nas áreas urbana e rural', t: 'checks', o: ['Transporte da produção agrícola', 'Transporte de insumos', 'Transporte de alimentos ou pescado refrigerados', 'Apoio a feiras e eventos', 'Transporte de materiais e equipamentos', 'Içamento e instalação de cargas (postes, tubos, caixas d’água)'] },
+      { k: 'qcServOutro', l: 'Outro uso (se houver)', t: 'text' },
+      { k: 'qcFrigoProd', l: 'Que produtos serão transportados refrigerados e para onde?', t: 'text', bem: [B.frigo] },
+      { k: 'qcMunckAtend', l: 'Atendimentos estimados por mês com o munck', t: 'num', bem: [B.munck] },
+      { k: 'qcMunckOper', l: 'Há operador capacitado para o munck (cursos NR-11, NR-12 ou NR-18)?', t: 'radio', o: SN, bem: [B.munck] },
+      { k: 'qcMunckOperDesc', l: 'Quantos operadores e quais cursos?', t: 'text', se: ['qcMunckOper', 'Sim'] },
+      { k: 'qcMunckArt', l: 'Realiza serviços que exigem ART (Anotação de Responsabilidade Técnica)?', t: 'radio', o: SN, bem: [B.munck] },
+      { k: 'qcMunckArtDesc', l: 'Quais serviços?', t: 'text', se: ['qcMunckArt', 'Sim'] },
+      { k: 'qcMunckEpi', l: 'Está ciente do uso obrigatório de EPI e de sinalização de segurança no local de operação?', t: 'radio', o: SN, bem: [B.munck] },
+      { k: 'qcVizinhos', l: 'Há possibilidade de atender municípios vizinhos?', t: 'radio', o: SN, bem: [B.munck], pub: true },
+      { k: 'qcAluga', l: 'Aluga hoje esse tipo de caminhão?', t: 'radio', o: SN },
+      { k: 'qcAlugaDesc', l: 'Frequência e custo do aluguel (diária, hora ou por ano)', t: 'text', se: ['qcAluga', 'Sim'] },
     ],
   },
   pipa: {
@@ -1023,33 +1116,154 @@ const QDEF = {
     itens: [
       { k: 'qpAguaSede', l: 'Existe água encanada na sede do município?', t: 'radio', o: ['Sim', 'Não', 'Parcial'] },
       { k: 'qpAguaRural', l: 'Existe água encanada nas áreas rurais?', t: 'radio', o: ['Sim', 'Não', 'Parcial'] },
+      { k: 'qpAtende', l: 'O caminhão-pipa atenderá', t: 'checks', o: ['Sede do município', 'Zona rural'] },
+      { k: 'qpLocQtd', l: 'Quantas localidades serão atendidas?', t: 'num' },
       { k: 'qpColeta', l: 'Onde fica(m) o(s) ponto(s) de coleta de água?', t: 'text' },
       { k: 'qpDist', l: 'Maior distância a ser percorrida pelo caminhão (km)', t: 'num' },
       { k: 'qpMeses', l: 'Por quantos meses no ano o caminhão será usado?', t: 'num' },
-      { k: 'qpProprio', l: 'A prefeitura já possui caminhão-pipa?', t: 'radio', o: ['Sim', 'Não'] },
+      { k: 'qpProprio', l: 'A prefeitura já possui caminhão-pipa?', t: 'radio', o: SN },
       { k: 'qpProprioQtd', l: 'Quantos?', t: 'num', se: ['qpProprio', 'Sim'] },
-      { k: 'qpTerc', l: 'Contrata caminhão-pipa terceirizado?', t: 'radio', o: ['Sim', 'Não'] },
+      { k: 'qpTerc', l: 'Contrata caminhão-pipa terceirizado?', t: 'radio', o: SN },
       { k: 'qpTercDesc', l: 'Quantos, custo mensal (R$) e empresa contratada', t: 'text', se: ['qpTerc', 'Sim'] },
       { k: 'qpArmaz', l: 'Onde a água será colocada para as famílias?', t: 'checks', o: ['Cisterna individual', 'Cisterna comunitária', 'Caixa d’água comunitária'] },
-      { k: 'qpTratada', l: 'A água é tratada?', t: 'radio', o: ['Sim', 'Não'] },
+      { k: 'qpTratada', l: 'A água é tratada?', t: 'radio', o: SN },
       { k: 'qpTrata', l: 'Quem se responsabiliza pelo tratamento?', t: 'radio', o: ['A prefeitura', 'A família beneficiada', 'Companhia de água'] },
     ],
   },
+  compactador: {
+    titulo: 'Caminhão compactador de lixo', resp: 'preferencialmente o responsável pela limpeza urbana',
+    itens: [
+      { k: 'qrNota', l: 'Os dados principais da coleta (população, frequência, cobertura, destino do lixo, plano de resíduos) são pedidos na etapa Resíduos. Aqui ficam só as informações complementares.', t: 'nota', pub: true },
+      { k: 'qrTercCam', l: 'Há caminhões de coleta terceirizados?', t: 'radio', o: SN },
+      { k: 'qrTercCamDesc', l: 'Tipo, quantidade, empresa e valor mensal do contrato', t: 'text', se: ['qrTercCam', 'Sim'] },
+      { k: 'qrGaris', l: 'Número de garis (homens / mulheres)', t: 'text', ph: 'Ex.: 18 homens / 6 mulheres' },
+      { k: 'qrGarisTerc', l: 'O serviço de garis é terceirizado?', t: 'radio', o: SN },
+      { k: 'qrGarisTercDesc', l: 'Empresa e valor mensal do contrato', t: 'text', se: ['qrGarisTerc', 'Sim'] },
+      { k: 'qrEpi', l: 'Os garis usam EPI?', t: 'radio', o: SN },
+      { k: 'qrEpiQuais', l: 'Quais EPIs?', t: 'text', se: ['qrEpi', 'Sim'] },
+      { k: 'qrDestAnos', l: 'Há quantos anos o local de destino do lixo é usado?', t: 'num' },
+      { k: 'qrDestVida', l: 'Por quantos anos ainda poderá ser usado (estimativa)?', t: 'num' },
+      { k: 'qrAterroTerc', l: 'O aterro é de empresa terceirizada?', t: 'radio', o: SN },
+      { k: 'qrAterroTercDesc', l: 'Empresa e custo mensal', t: 'text', se: ['qrAterroTerc', 'Sim'] },
+      { k: 'qrCertMP', l: 'O município recebeu o certificado do Ministério Público da Paraíba de erradicação dos lixões?', t: 'radio', o: ['Sim', 'Não', 'Em andamento'], pub: true },
+    ],
+  },
+  kits: {
+    titulo: 'Kits de inclusão produtiva – informações gerais', resp: 'preferencialmente o secretário da área a que o kit está vinculado',
+    itens: [
+      { k: 'qkUso', l: 'Quem vai usar o(s) kit(s)?', t: 'radio', o: ['O próprio município (secretaria ou projeto)', 'Entidade(s) do município (repasse)'], pub: true },
+      { k: 'qkSec', l: 'Secretaria e projeto a que o kit está vinculado', t: 'text', se: ['qkUso', 'O próprio município (secretaria ou projeto)'] },
+      { k: 'qkEnt', l: 'Entidades que receberão os kits: nome, comunidade, nº de associados e nº de kits para cada uma', t: 'area', se: ['qkUso', 'Entidade(s) do município (repasse)'] },
+      { k: 'qkSelecao', l: 'Como serão selecionadas as pessoas beneficiadas?', t: 'text' },
+      { k: 'qkApoio', l: p => p ? 'Que apoio a prefeitura (ou outra instituição) dará aos beneficiários?' : 'Os associados recebem ou vão receber apoio de algum órgão ou instituição? Qual?', t: 'text' },
+      { k: 'qkCapac', l: 'Os beneficiários têm capacitação ou assistência técnica na atividade?', t: 'radio', o: ['Sim', 'Em parte', 'Não'] },
+      { k: 'qkCapacDesc', l: 'Qual capacitação e quem presta a assistência técnica?', t: 'text', se: ['qkCapac', ['Sim', 'Em parte']] },
+      { k: 'qkComerc', l: 'Como será feita a comercialização da produção?', t: 'text', bem: [B.kcom, B.kpes, B.kleite, B.kmel, B.kapi, B.kcost] },
+    ],
+  },
+  pescado: {
+    titulo: 'Kit de comercialização de pescado', resp: '',
+    itens: [
+      { k: 'qnKg', l: 'Quantidade de pescado a beneficiar (kg por mês)', t: 'num' },
+      { k: 'qnEsp', l: 'Pescados que pretende comercializar', t: 'checks', o: ['Peixes', 'Camarões', 'Moluscos (ostras, mariscos)', 'Caranguejos / siris', 'Outros'] },
+      { k: 'qnEspQuais', l: 'Quais espécies?', t: 'text' },
+      { k: 'qnCortes', l: 'Tipos de corte ou produto (inteiro, filé, posta etc.)', t: 'text' },
+      { k: 'qnCaptura', l: 'Onde os animais são capturados?', t: 'text' },
+      { k: 'qnApetr', l: 'Apetrechos de pesca usados na captura', t: 'text' },
+      { k: 'qnCultivo', l: 'Serão vendidos animais de cultivo (aquicultura)?', t: 'radio', o: SN },
+      { k: 'qnCultivoDesc', l: 'Quais e de que cidade vêm?', t: 'text', se: ['qnCultivo', 'Sim'] },
+    ],
+  },
+  leite: {
+    titulo: 'Kit de pecuária leiteira', resp: '',
+    itens: [
+      { k: 'qlLitros', l: 'Leite a beneficiar (litros por dia)', t: 'num' },
+      { k: 'qlLocal', l: 'O local de instalação do kit tem:', t: 'checks', o: ['Área coberta, azulejada, com telas nas janelas e piso lavável', 'Energia elétrica compatível com a carga dos equipamentos', 'Técnico habilitado para a instalação', 'Água tratada para higienização'] },
+      { k: 'qlInsp', l: 'Os beneficiários conhecem as exigências do serviço de inspeção (municipal, estadual ou federal)?', t: 'radio', o: SN },
+      { k: 'qlCapac', l: p => p ? 'O município se compromete a capacitá-los nessas exigências?' : 'A entidade se compromete a buscar capacitação nessas exigências?', t: 'radio', o: SN, se: ['qlInsp', 'Não'] },
+    ],
+  },
+  mel: {
+    titulo: 'Kit de beneficiamento de mel', resp: '',
+    itens: [
+      { k: 'qmKg', l: 'Mel a beneficiar (kg por ano)', t: 'num' },
+      { k: 'qmLocal', l: 'Onde o kit será instalado (casa do mel, sede da entidade etc.)?', t: 'text' },
+    ],
+  },
+  apicultura: {
+    titulo: 'Kit de apicultura', resp: '',
+    itens: [
+      { k: 'qxNota', l: 'Os produtores beneficiados devem ter capacitação em apicultura.', t: 'nota' },
+      { k: 'qxGrupos', l: 'Quantos grupos de apicultores a prefeitura apoia?', t: 'num', pub: true },
+      { k: 'qxGruposDesc', l: 'Nº de pessoas, há quanto tempo e ações já realizadas com o(s) grupo(s)', t: 'area', pub: true },
+      { k: 'qxTempo', l: 'Há quanto tempo os produtores praticam a apicultura?', t: 'text' },
+      { k: 'qxProd', l: 'Produtos da apicultura que o grupo produz', t: 'checks', o: ['Mel', 'Própolis', 'Cera', 'Pólen', 'Geleia real'] },
+      { k: 'qxProp', l: 'Tamanho das propriedades (variação, em ha)', t: 'text', ph: 'Ex.: de 2 a 15 ha' },
+      { k: 'qxAgua', l: 'Fonte de água e florada para as abelhas: qual e a que distância dos apiários?', t: 'text' },
+    ],
+  },
+  costura: {
+    titulo: 'Corte e costura / máquinas de costura', resp: '',
+    itens: [
+      { k: 'qsAtelier', l: p => p ? 'Existe ateliê de costura vinculado à secretaria que ofereça cursos ou serviços?' : 'A entidade já tem ateliê ou grupo de costura em funcionamento?', t: 'radio', o: SN },
+      { k: 'qsAtelierDesc', l: 'Máquinas que possui, quantidade, custo de manutenção e serviços já prestados', t: 'text', se: ['qsAtelier', 'Sim'] },
+      { k: 'qsLocal', l: 'Onde as máquinas serão instaladas e guardadas?', t: 'text' },
+      { k: 'qsOper', l: 'Há pessoas com experiência ou capacitação em costura?', t: 'radio', o: SN },
+      { k: 'qsOperPlano', l: 'Como pretende capacitá-las?', t: 'text', se: ['qsOper', 'Não'] },
+      { k: 'qsAtiv', l: 'Atividades previstas', t: 'checks', o: ['Produção de uniformes', 'Cursos de corte e costura', 'Confecção de roupas para venda', 'Artesanato / bordado', 'Consertos e ajustes'] },
+      { k: 'qsInsumos', l: 'Como serão adquiridos os insumos (tecidos, linhas, aviamentos)?', t: 'text' },
+      { k: 'qsRenda', l: 'Ganho esperado por pessoa ou família (R$ por mês)', t: 'text' },
+      { k: 'qsGestao', l: 'Como será feita a gestão das máquinas e a substituição de quem desistir?', t: 'text' },
+    ],
+  },
+  feira: {
+    titulo: 'Barracas de feira livre', resp: 'preferencialmente o secretário de Agricultura ou de Desenvolvimento Econômico',
+    itens: [
+      { k: 'qfFeira', l: 'Há feira livre organizada regularmente?', t: 'radio', o: SN },
+      { k: 'qfDias', l: 'Dias de funcionamento', t: 'text', se: ['qfFeira', 'Sim'] },
+      { k: 'qfFeirantes', l: 'Número aproximado de feirantes', t: 'num', se: ['qfFeira', 'Sim'] },
+      { k: 'qfConsum', l: 'Consumidores atendidos (estimativa por feira)', t: 'num', se: ['qfFeira', 'Sim'] },
+      { k: 'qfSuf', l: 'As barracas existentes são suficientes?', t: 'radio', o: SN },
+      { k: 'qfNec', l: 'Quantidade de barracas necessária', t: 'num', se: ['qfSuf', 'Não'] },
+      { k: 'qfFin', l: 'Finalidade das barracas', t: 'checks', o: ['Apoio à agricultura familiar', 'Venda de hortifrutigranjeiros', 'Venda de artesanato', 'Eventos e feiras temáticas'] },
+      { k: 'qfFinOutro', l: 'Outra finalidade (se houver)', t: 'text' },
+      { k: 'qfFeirBenef', l: 'Feirantes beneficiados diretamente', t: 'num' },
+      { k: 'qfLocal', l: 'Onde as barracas serão instaladas?', t: 'text' },
+    ],
+  },
 };
-const QBEM = { 'Trator e implementos': 'trator', 'Retroescavadeira': 'amarela', 'Pá carregadeira': 'amarela', 'Caminhão-pipa': 'pipa' };
-function blocosQ() { const s = new Set(); bensSel().forEach(b => { const q = QBEM[b.nome]; if (q && (q !== 'pipa' || TIPO === 'pub')) s.add(q); }); return [...s]; }
+// bem → bloco(s) de perguntas
+const QBEM = {
+  [B.tr]: ['trator'], [B.tri]: ['trator'], [B.imp]: ['trator'], [B.micro]: ['trator'], [B.ens]: ['trator'],
+  [B.retro]: ['amarela'], [B.pa]: ['amarela'], [B.escav]: ['amarela'], [B.moto]: ['amarela'], [B.rolo]: ['amarela'],
+  [B.basc]: ['basculante'], [B.carga]: ['carga'], [B.frigo]: ['carga'], [B.munck]: ['carga'], [B.pipa]: ['pipa'], [B.comp]: ['compactador'],
+  [B.kcom]: ['kits'], [B.kpes]: ['kits', 'pescado'], [B.kleite]: ['kits', 'leite'], [B.kmel]: ['kits', 'mel'], [B.kapi]: ['kits', 'apicultura'],
+  [B.kcost]: ['kits', 'costura'], [B.barr]: ['feira'],
+};
+const QORD = Object.keys(QDEF);
+function blocosQ() { const s = new Set(); bensSel().forEach(b => (QBEM[b.nome] || []).forEach(q => s.add(q))); return QORD.filter(q => s.has(q)); }
+// campos de caixas de seleção dos quais outras perguntas dependem (exigem redesenhar a tela)
+const QDEP = new Set(Object.values(QDEF).flatMap(d => d.itens.filter(it => it.se).map(it => it.se[0])));
 const qLabel = it => typeof it.l === 'function' ? it.l(TIPO === 'pub') : it.l;
-const qVisivel = it => !it.se || S[it.se[0]] === it.se[1];
+const qVisivel = it => {
+  if (it.pub && TIPO !== 'pub') return false;
+  if (it.priv && TIPO === 'pub') return false;
+  if (it.bem && !bensSel().some(b => it.bem.includes(b.nome))) return false;
+  if (!it.se) return true;
+  const [k, val] = it.se, r = S[k], alvo = Array.isArray(val) ? val : [val];
+  return Array.isArray(r) ? r.some(x => alvo.includes(x)) : alvo.includes(r);
+};
 function qCampo(it) {
   const l = qLabel(it);
+  if (it.t === 'nota') return `<div class="msg" style="margin:8px 0">${l}</div>`;
   if (it.t === 'radio') return radios(it.k, l, it.o);
   if (it.t === 'checks') { if (!Array.isArray(S[it.k])) S[it.k] = []; return checks(it.k, l, it.o); }
   if (it.t === 'area') return area(it.k, l);
-  return txt(it.k, l, { type: it.t === 'num' ? 'number' : 'text' });
+  return txt(it.k, l, { type: it.t === 'num' ? 'number' : 'text', ph: it.ph });
 }
 function etapaQuestionario() {
   const bl = blocosQ();
-  if (!bl.length) return `<h2>Questionário técnico</h2><div class="msg ok">Os bens escolhidos não têm questionário específico. Pode avançar.</div><p class="hint">Nesta amostra, há questionários para: trator e implementos, retroescavadeira, pá carregadeira${TIPO === 'pub' ? ' e caminhão-pipa' : ''}.</p>`;
+  if (!bl.length) return `<h2>Questionário técnico</h2><div class="msg ok">Os bens escolhidos não têm questionário específico. Pode avançar.</div>`;
   return `<h2>Questionário técnico</h2><p class="sub">Perguntas específicas sobre o(s) bem(ns) pedido(s). As respostas serão anexadas ao Plano de Uso.</p>
     ${bl.map(b => { const d = QDEF[b]; return `<h3>${d.titulo}</h3>${d.itens.filter(qVisivel).map(qCampo).join('')}`; }).join('')}
     <h3>Responsável pelas informações técnicas</h3>
@@ -1064,7 +1278,7 @@ function anexoQuestionario(c) {
   bl.forEach(b => {
     const d = QDEF[b];
     c.push(barra(d.titulo.toUpperCase()));
-    const linhas = d.itens.filter(qVisivel).map(it => { const r = S[it.k]; const val = Array.isArray(r) ? (r.length ? r.join(', ') : '') : r; return [{ text: qLabel(it), bold: true, fontSize: 8.8 }, { text: v(val), fontSize: 8.8 }]; });
+    const linhas = d.itens.filter(it => it.t !== 'nota' && qVisivel(it)).map(it => { const r = S[it.k]; const val = Array.isArray(r) ? (r.length ? r.join(', ') : '') : r; return [{ text: qLabel(it), bold: true, fontSize: 8.8 }, { text: v(val), fontSize: 8.8 }]; });
     c.push(grade(linhas, [230, '*']));
   });
   c.push(barra('RESPONSÁVEL PELAS INFORMAÇÕES TÉCNICAS'));
