@@ -61,7 +61,7 @@
   <footer>Dúvidas: Gabinete da 13ª Superintendência Regional da Codevasf – João Pessoa/PB · Telefone (61) 99298-0403</footer>
 </div>
 <script>
-const VERSAO = 'v2.7 (nov/2026)';
+const VERSAO = 'v2.8 (nov/2026)';
 const PROTOCOLO = 'https://www.gov.br/codevasf/pt-br/servicos/protocolo-digital';
 const item = (arq, titulo, desc, cond, destaque) => `<div class="item${destaque ? ' destaque' : ''}"><div class="tx"><div class="tt">${titulo}${cond ? ` <span class="cond">(${cond})</span>` : ''}</div>${desc ? `<div class="ds">${desc}</div>` : ''}</div><a class="dl" href="${arq}" download>⬇ Baixar</a></div>`;
 const QUEST = [
@@ -80,9 +80,9 @@ const QUEST = [
   ['Barracas_Feira_Livre', 'Barracas de feira livre', ''],
 ];
 const GRUPOS = {
-  I: { req: '1 ano de CNPJ e 15 associados', bens: 'Inclusão produtiva, irrigação, tubos, água, dessedentação animal e microtrator. Com análise especial: trator e implementos; veículos de carga.' },
-  II: { req: '2 anos de CNPJ e 30 associados', bens: 'Os do Grupo I, mais trator e implementos e veículos de carga (VLC, ¾, toco e caminhonete).' },
-  III: { req: '4 anos de CNPJ e 45 associados', bens: 'Os do Grupo II, mais retroescavadeira. Com análise especial: veículos trucados e caminhão compactador.' },
+  I: { req: "1 ano de CNPJ e 15 associados", bens: "Microtrator; Ensiladeira / picadeira forrageira; Kit de comercialização (balança, freezers e mesa inox); Kit de comercialização de pescado; Kit de pecuária leiteira; Kit de beneficiamento de mel; Kit de apicultura; Kit de corte e costura / máquinas de costura; Barracas de feira livre; Outros itens de inclusão produtiva; Equipamentos de irrigação; Tubos; Equipamentos de acumulação de água; Equipamentos de dessedentação animal. Com análise especial da Comissão de Doação: Trator agrícola (somente o trator); Trator agrícola com implementos; Implementos agrícolas (para trator que já possui); Veículo de carga (VLC, ¾, toco ou caminhonete); Caminhão frigorífico; Caminhão munck (guindauto); Caminhão basculante toco." },
+  II: { req: "2 anos de CNPJ e 30 associados", bens: "Trator agrícola (somente o trator); Trator agrícola com implementos; Implementos agrícolas (para trator que já possui); Microtrator; Ensiladeira / picadeira forrageira; Kit de comercialização (balança, freezers e mesa inox); Kit de comercialização de pescado; Kit de pecuária leiteira; Kit de beneficiamento de mel; Kit de apicultura; Kit de corte e costura / máquinas de costura; Barracas de feira livre; Outros itens de inclusão produtiva; Equipamentos de irrigação; Tubos; Equipamentos de acumulação de água; Equipamentos de dessedentação animal; Veículo de carga (VLC, ¾, toco ou caminhonete); Caminhão frigorífico; Caminhão munck (guindauto); Caminhão basculante toco." },
+  III: { req: "4 anos de CNPJ e 45 associados", bens: "Trator agrícola (somente o trator); Trator agrícola com implementos; Implementos agrícolas (para trator que já possui); Microtrator; Ensiladeira / picadeira forrageira; Kit de comercialização (balança, freezers e mesa inox); Kit de comercialização de pescado; Kit de pecuária leiteira; Kit de beneficiamento de mel; Kit de apicultura; Kit de corte e costura / máquinas de costura; Barracas de feira livre; Outros itens de inclusão produtiva; Equipamentos de irrigação; Tubos; Equipamentos de acumulação de água; Equipamentos de dessedentação animal; Veículo de carga (VLC, ¾, toco ou caminhonete); Caminhão frigorífico; Caminhão munck (guindauto); Caminhão basculante toco; Retroescavadeira. Com análise especial da Comissão de Doação: Caminhão basculante trucado; Veículo trucado (outros); Caminhão compactador de resíduos sólidos." },
 };
 let grupo = 'I';
 const comoPreencher = `<div class="msg">Os modelos são formulários: abra no Word, use a tecla <b>Tab</b> para ir de um campo ao outro e clique nas caixas para marcar. Depois, salve em PDF, assine (gov.br ou certificado digital) e envie pelo <a href="${PROTOCOLO}" target="_blank" rel="noopener">Protocolo Digital da Codevasf</a>.</div>`;

@@ -158,13 +158,11 @@ function GR() {
   let m = 0; for (const n of sel) { const x = n === '__outro' ? { g: P } : melhor(n, P); if (x) m = Math.max(m, ORD.indexOf(x.g)); }
   return ORD[m];
 }
-const ENQ_BENS = {
-  I: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares. Com análise especial da Comissão de Doação: trator e implementos; veículos de carga VLC, ¾, toco e caminhonete.',
-  II: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete.',
-  III: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete; retroescavadeira. Com análise especial da Comissão de Doação: veículos trucados; caminhão compactador de resíduos sólidos.',
-};
+// lista exaustiva dos bens de cada grupo, montada da tabela TAB (sempre alinhada com a escolha de bens)
+const bensDoGrupo = G => ({ livre: TAB.filter(([, e]) => e[G] === 'E').map(([n]) => n), cond: TAB.filter(([, e]) => e[G] === 'C').map(([n]) => n) });
+const ENQ_BENS = Object.fromEntries(['I', 'II', 'III'].map(G => { const b = bensDoGrupo(G); return [G, b.livre.join('; ') + '.' + (b.cond.length ? ' Com análise especial da Comissão de Doação: ' + b.cond.join('; ') + '.' : '')]; }));
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v2.7 (nov/2026)';
+const VERSAO = 'v2.8 (nov/2026)';
 const MODELOS = location.protocol === 'file:' ? 'https://codevasf13sr.github.io/doacao/modelos/index.html' : 'modelos/index.html';
 
 // ---------------------------------------------------------------- estado
