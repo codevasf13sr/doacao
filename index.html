@@ -164,7 +164,7 @@ const ENQ_BENS = {
   III: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete; retroescavadeira. Com análise especial da Comissão de Doação: veículos trucados; caminhão compactador de resíduos sólidos.',
 };
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v2.5 (nov/2026)';
+const VERSAO = 'v2.6 (nov/2026)';
 const MODELOS = location.protocol === 'file:' ? 'https://codevasf13sr.github.io/doacao/modelos/index.html' : 'modelos/index.html';
 
 // ---------------------------------------------------------------- estado
@@ -417,6 +417,7 @@ function revisao() {
   <button class="btn big" id="gReq">📄 Gerar Requerimento (PDF)</button>
   <button class="btn big" id="gPlano">📄 Gerar Plano de Uso${S.recebeu === 'Sim' ? ' + relatório e fotos' : ''} (PDF)</button>
   <div class="status" id="status"></div>
+  ${blocoGuardar()}
   ${lembreteDocs()}
   <p class="hint" style="margin-top:12px">Os PDFs saem prontos para assinatura no gov.br (assinador.iti.br). Para corrigir algo, volte à etapa, ajuste e gere de novo.</p>`;
 }
@@ -481,7 +482,8 @@ const INICIO = [{ t: 'Início', f: () => `
   <h2>Qual é o tipo de entidade?</h2><p class="sub">Escolha o formulário correspondente ao tipo de entidade.</p>
   <div class="gcards"><a class="gcard" href="#publica" style="text-decoration:none;color:inherit"><b>Entidade pública</b><div style="font-size:13px;margin-top:4px">Prefeituras, órgãos e entidades públicas, consórcios intermunicipais e distritos de irrigação</div></a>
   <a class="gcard" href="#privada" style="text-decoration:none;color:inherit"><b>Entidade privada sem fins lucrativos</b><div style="font-size:13px;margin-top:4px">Associações, cooperativas e organizações da sociedade civil</div></a></div>
-  <div class="msg" style="background:var(--claro);color:var(--azul);margin-top:16px;font-size:14px">📄 <b>Prefere preencher em Word?</b> Baixe os modelos, os questionários técnicos e o checklist de entrega na página de <a href="${MODELOS}">modelos para download</a>.</div>` }];
+  <div class="msg" style="background:#fff;border:1px solid var(--borda);color:var(--azul);margin-top:16px;font-size:14px">📂 <b>Já tem um preenchimento salvo?</b> <button class="btn sec" id="abrirPre" style="margin-left:6px;padding:7px 12px;font-size:14px">Abrir preenchimento salvo</button><input type="file" id="arqPre" accept=".json,application/json" style="display:none"></div>
+  <div class="msg" style="background:var(--claro);color:var(--azul);margin-top:10px;font-size:14px">📄 <b>Prefere preencher em Word?</b> Baixe os modelos, os questionários técnicos e o checklist de entrega na página de <a href="${MODELOS}">modelos para download</a>.</div>` }];
 let ETAPAS = INICIO;
 function cabecalho() {
   document.getElementById('faixa').textContent = `Versão de teste – formulário ${VERSAO}. Os dados digitados ficam só neste navegador e não são enviados a nenhum servidor.`;
@@ -494,7 +496,9 @@ window.addEventListener('hashchange', () => { TIPO = location.hash === '#publica
 function render() {
   document.getElementById('steps').innerHTML = ETAPAS.map((e, i) => `<button class="${i === atual ? 'on' : ''}" data-go="${i}">${i + 1}. ${e.t}</button>`).join('');
   const tem = TIPO && (S.razao || bensSel().length || S.abertura);
-  document.getElementById('card').innerHTML = (atual === 0 && tem && !window._avisoVisto ? `<div class="msg warn" style="margin:0 0 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:240px">Há um preenchimento em andamento${S.razao ? ` de <b>${esc(S.razao)}</b>` : ''} neste navegador.</span><button class="mini" id="avCont">Continuar este</button><button class="mini" id="avNovo">🗑 Começar novo requerimento</button></div>` : '') + ETAPAS[atual].f();
+  const ok = window._carregado ? `<div class="msg ok" style="margin:0 0 14px">📂 Preenchimento de <b>${esc(window._carregado)}</b> carregado. Confira cada etapa, ajuste o que mudou (bem pedido, datas, quantidades) e inclua de novo as fotos e o PDF de associados, se houver.</div>` : '';
+  window._carregado = '';
+  document.getElementById('card').innerHTML = ok + (atual === 0 && tem && !window._avisoVisto ? `<div class="msg warn" style="margin:0 0 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:240px">Há um preenchimento em andamento${S.razao ? ` de <b>${esc(S.razao)}</b>` : ''} neste navegador.</span><button class="mini" id="avCont">Continuar este</button><button class="mini" id="avNovo">🗑 Começar novo requerimento</button></div>` : '') + ETAPAS[atual].f();
   window._avisoVisto = window._avisoVisto || atual > 0;
   document.getElementById('novo').style.display = TIPO ? '' : 'none';
   document.getElementById('prev').style.visibility = atual ? 'visible' : 'hidden';
@@ -522,6 +526,7 @@ card.addEventListener('input', e => {
 });
 card.addEventListener('change', e => {
   const t = e.target;
+  if (t.id === 'arqPre') { if (t.files[0]) abrirPreenchimento(t.files[0]); t.value = ''; return; }
   if (t.type === 'radio' && t.dataset.k) { S[t.dataset.k] = t.value; salvar(); render(); return; }
   if (t.dataset.arr) { const a = S[t.dataset.arr] || (S[t.dataset.arr] = []); const i = a.indexOf(t.value); if (t.checked && i < 0) a.push(t.value); if (!t.checked && i >= 0) a.splice(i, 1); salvar(); if (typeof QDEP !== 'undefined' && QDEP.has(t.dataset.arr)) { render(); return; } t.closest('.opt').classList.toggle('sel', t.checked); return; }
   if (t.dataset.bool) { S[t.dataset.bool] = t.checked; salvar(); render(); return; }
@@ -533,7 +538,7 @@ card.addEventListener('change', e => {
   if (t.dataset.k === 'rCpf') { S.rCpf = fmtCpf(S.rCpf); t.value = S.rCpf; salvar(); }
 });
 card.addEventListener('click', e => {
-  const t = e.target.closest('#avCont,#avNovo,#geo,#gRes,#addas,[data-delas],#adddir,[data-deldir],#addrec,[data-delrec],[data-rot],[data-delph],#gReq,#gPlano');
+  const t = e.target.closest('#guardarPre,#abrirPre,#avCont,#avNovo,#geo,#gRes,#addas,[data-delas],#adddir,[data-deldir],#addrec,[data-delrec],[data-rot],[data-delph],#gReq,#gPlano');
   if (!t) return;
   if (t.id === 'avCont') { window._avisoVisto = true; render(); }
   else if (t.id === 'avNovo') { document.getElementById('novo').click(); }
@@ -546,6 +551,8 @@ card.addEventListener('click', e => {
   else if (t.dataset.delrec) { S.recebidos.splice(+t.dataset.delrec, 1); if (!S.recebidos.length) S.recebidos.push({ desc: '', fab: '', rec: '', local: '' }); salvar(); render(); }
   else if (t.dataset.rot) { girar(+t.dataset.rot); }
   else if (t.dataset.delph) { FOTOS.splice(+t.dataset.delph, 1); render(); }
+  else if (t.id === 'guardarPre') guardarPreenchimento();
+  else if (t.id === 'abrirPre') document.getElementById('arqPre').click();
   else if (t.id === 'gReq') gerar('req');
   else if (t.id === 'gPlano') gerar('plano');
   else if (t.id === 'gRes') gerar('res');
@@ -754,6 +761,38 @@ function docPlano() {
   return { pageSize: 'A4', pageMargins: [40, 40, 40, 40], defaultStyle: { fontSize: 9.5, lineHeight: 1.15 }, footer: rodape(`Plano de Uso do Bem – Entidade privada – ${g.rotulo} – N-455`), content: c, info: { title: 'Plano de Uso do Bem – Codevasf' } };
 }
 
+// ---------------------------------------------------------------- guardar / abrir preenchimento (arquivo .json)
+const slug = (x, n) => (x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\(.*?\)/g, '').replace(/[^\w]+/g, '_').replace(/^_+|_+$/g, '').slice(0, n);
+function nomePreenchimento() {
+  const b = bensSel();
+  const pal = b.length ? b[0].nome.replace(/\(.*?\)/g, '').trim().split(/\s+/).slice(0, 3) : [];
+  while (pal.length > 1 && ['com', 'de', 'da', 'do', 'e', 'para', '/'].includes(pal[pal.length - 1].toLowerCase())) pal.pop();
+  const bem = b.length ? slug(pal.join(' '), 30) + (b.length > 1 ? '_e_outros' : '') : 'sem_bem';
+  const d = new Date(), dd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return `${slug(S.razao || 'entidade', 40)}_${bem}_${dd}.json`;
+}
+const blocoGuardar = () => `<div class="msg" style="background:#fff;border:1px solid var(--borda);color:var(--txt);margin-top:14px">
+  <b>💾 Vai fazer outros pedidos para esta entidade?</b> Salve o preenchimento num arquivo e, da próxima vez, abra-o na página inicial do formulário: tudo volta preenchido (fotos e PDF de associados anexado precisam ser incluídos de novo).
+  <button class="btn sec big" id="guardarPre" style="margin-top:8px">💾 Salvar preenchimento (para reutilizar)</button></div>`;
+async function guardarPreenchimento() {
+  const dados = { app: 'codevasf-doacao-13sr', versao: VERSAO, tipo: TIPO, salvoEm: new Date().toISOString(), dados: S };
+  const msg = await salvarArquivo(nomePreenchimento(), new Blob([JSON.stringify(dados, null, 1)], { type: 'application/json' }));
+  alertaStatus(msg === 'Arquivo gerado.' || msg === 'Arquivo salvo.' ? 'Preenchimento salvo. Para usar de novo, abra o formulário e clique em “Abrir preenchimento salvo”.' : msg);
+}
+function abrirPreenchimento(f) {
+  const r = new FileReader();
+  r.onload = () => {
+    let j; try { j = JSON.parse(r.result); } catch (e) { j = null; }
+    if (!j || j.app !== 'codevasf-doacao-13sr' || !j.dados || !['pub', 'priv'].includes(j.tipo)) { alert('Este arquivo não é um preenchimento salvo por este formulário.'); return; }
+    const d = Object.assign({}, j.dados, { aceite: false });
+    try { localStorage.setItem('codevasf_req_rascunho_' + j.tipo, JSON.stringify(d)); } catch (e) {}
+    window._avisoVisto = true;
+    window._carregado = (d.razao || 'entidade') + (j.salvoEm ? ' (salvo em ' + new Date(j.salvoEm).toLocaleDateString('pt-BR') + ')' : '');
+    const h = j.tipo === 'pub' ? '#publica' : '#privada';
+    if (location.hash === h) { FOTOS = []; ARQ_ASSOC = null; carregar(); atual = 0; cabecalho(); render(); } else location.hash = h;
+  };
+  r.readAsText(f);
+}
 async function salvarArquivo(nome, blob) {
   try {
     if (window.claude && window.claude.use) {
@@ -893,6 +932,7 @@ function revisaoPub() {
   <button class="btn big" id="gPlano">📄 Gerar Plano de Uso${S.recebeu === 'Sim' ? ' + relatório e fotos' : ''} (PDF)</button>
   ${temCompactador() ? '<button class="btn big" id="gRes">📄 Gerar Plano Simplificado de Gestão de Resíduos Sólidos (PDF)</button>' : ''}
   <div class="status" id="status"></div>
+  ${blocoGuardar()}
   ${lembreteDocs()}
   <p class="hint" style="margin-top:12px">Os PDFs saem prontos para assinatura no gov.br (assinador.iti.br). Para corrigir algo, volte à etapa, ajuste e gere de novo.</p>`;
 }
