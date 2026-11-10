@@ -61,7 +61,7 @@
   <footer>Dúvidas: Gabinete da 13ª Superintendência Regional da Codevasf – João Pessoa/PB · Telefone (61) 99298-0403</footer>
 </div>
 <script>
-const VERSAO = 'v2.6 (nov/2026)';
+const VERSAO = 'v2.7 (nov/2026)';
 const PROTOCOLO = 'https://www.gov.br/codevasf/pt-br/servicos/protocolo-digital';
 const item = (arq, titulo, desc, cond, destaque) => `<div class="item${destaque ? ' destaque' : ''}"><div class="tx"><div class="tt">${titulo}${cond ? ` <span class="cond">(${cond})</span>` : ''}</div>${desc ? `<div class="ds">${desc}</div>` : ''}</div><a class="dl" href="${arq}" download>⬇ Baixar</a></div>`;
 const QUEST = [
@@ -112,17 +112,17 @@ const TELAS = {
     ${item(`privada/grupo-${grupo}/3_Anexo_Relatorio_Uso_e_Fotos.docx`, 'Anexo – Relatório de uso e fotos', 'Uso dos bens já recebidos, onde estão e fotos.', 'somente se já recebeu bens da Codevasf')}
     ${comoPreencher}
     <div class="msg">Depois do protocolo, a Codevasf fará visita técnica à entidade. Prefere não usar o Word? O <a href="../index.html#privada">formulário on-line</a> gera os documentos em PDF prontos para assinar.</div>`; },
+  inicio: () => `<h2>Modelos para pedido de doação</h2><p class="sub">Escolha acima o tipo de entidade para ver os modelos: <b>Entidade pública</b>, <b>Entidade privada sem fins lucrativos</b> (Grupos I, II e III) ou <b>Após a aprovação</b> (autorização de retirada do bem).</p>
+    <div class="msg">Em cada página há primeiro o <b>checklist de entrega</b>, com tudo o que deve ser preenchido, juntado e protocolado. Prefere preencher on-line? Use o botão <b>📝 Preencher on-line</b>, no alto da página.</div>`,
   apos: () => `<h2>Após a aprovação da doação</h2><p class="sub">Documentos usados depois que a doação é aprovada.</p>
     ${item('apos/0_Anexo_L_Autorizacao_de_Retirada_de_Bem_Doado.docx', 'Autorização de retirada de bem doado – Anexo L', 'Autoriza uma pessoa a retirar o bem no pátio da Codevasf. Emitir preferencialmente em papel timbrado da entidade, com firma reconhecida em cartório. Preencha os campos em amarelo.')}`,
 };
 function mostrar() {
-  const t = (location.hash || '#publica').slice(1);
-  const tela = TELAS[t] ? t : 'publica';
+  const t = location.hash.slice(1);
+  const tela = TELAS[t] ? t : 'inicio';
   document.querySelectorAll('.tab').forEach(a => a.classList.toggle('on', a.dataset.t === tela));
   document.getElementById('card').innerHTML = TELAS[tela]();
-  // sem aba escolhida (veio da página inicial): volta para a página inicial do formulário
-  const escolhida = location.hash === '#publica' || location.hash === '#privada';
-  document.getElementById('linkForm').href = '../index.html' + (escolhida ? location.hash : '');
+  document.getElementById('linkForm').href = '../index.html'; // sempre a página inicial do formulário
 }
 document.getElementById('card').addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (b) { grupo = b.dataset.g; mostrar(); } });
 window.addEventListener('hashchange', mostrar);

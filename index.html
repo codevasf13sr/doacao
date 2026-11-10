@@ -164,7 +164,7 @@ const ENQ_BENS = {
   III: 'itens de inclusão produtiva, irrigação, tubos, acumulação de água, dessedentação animal, microtratores e similares; trator e implementos; veículos de carga VLC, ¾, toco e caminhonete; retroescavadeira. Com análise especial da Comissão de Doação: veículos trucados; caminhão compactador de resíduos sólidos.',
 };
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v2.6 (nov/2026)';
+const VERSAO = 'v2.7 (nov/2026)';
 const MODELOS = location.protocol === 'file:' ? 'https://codevasf13sr.github.io/doacao/modelos/index.html' : 'modelos/index.html';
 
 // ---------------------------------------------------------------- estado
@@ -490,7 +490,7 @@ function cabecalho() {
   ETAPAS = TIPO === 'pub' ? ETAPAS_PUB : TIPO === 'priv' ? ETAPAS_PRIV : INICIO;
   document.querySelector('header p').textContent = TIPO === 'pub' ? 'Assistente de preenchimento para entidades públicas (Norma N-455)' : TIPO === 'priv' ? 'Assistente de preenchimento para entidades privadas sem fins lucrativos (Norma N-455)' : 'Assistente de preenchimento (Norma N-455)';
   document.querySelector('.nav').style.display = TIPO ? 'flex' : 'none';
-  document.getElementById('linkModelos').href = MODELOS + (TIPO === 'pub' ? '#publica' : TIPO === 'priv' ? '#privada' : '');
+  document.getElementById('linkModelos').href = MODELOS; // sempre a página geral de modelos
 }
 window.addEventListener('hashchange', () => { TIPO = location.hash === '#publica' ? 'pub' : location.hash === '#privada' ? 'priv' : ''; FOTOS = []; ARQ_ASSOC = null; carregar(); atual = 0; cabecalho(); render(); window.scrollTo(0, 0); });
 function render() {
