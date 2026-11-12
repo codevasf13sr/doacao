@@ -162,7 +162,7 @@ function GR() {
 const bensDoGrupo = G => ({ livre: TAB.filter(([, e]) => e[G] === 'E').map(([n]) => n), cond: TAB.filter(([, e]) => e[G] === 'C').map(([n]) => n) });
 const ENQ_BENS = Object.fromEntries(['I', 'II', 'III'].map(G => { const b = bensDoGrupo(G); return [G, b.livre.join('; ') + '.' + (b.cond.length ? ' Com análise especial da Comissão de Doação: ' + b.cond.join('; ') + '.' : '')]; }));
 const SUPERINTENDENTE = 'Fred Queiroga Pinto';
-const VERSAO = 'v2.8 (nov/2026)';
+const VERSAO = 'v2.12 (nov/2026)';
 const MODELOS = location.protocol === 'file:' ? 'https://codevasf13sr.github.io/doacao/modelos/index.html' : 'modelos/index.html';
 
 // ---------------------------------------------------------------- estado
@@ -369,6 +369,7 @@ function declaracoes() {
     ['Veículos', 'se o bem for veículo, quitaremos os débitos incidentes (IPVA, licenciamento, multas e transferência) e providenciaremos a transferência de propriedade.'],
     ['Encargo', 'estamos cientes de que a Comissão de Doação poderá fixar encargo ou contrapartida e, nesse caso, recolheremos 1% (um por cento) do valor do(s) bem(ns), ou o valor definido pela Comissão, por meio de GRU, antes da publicação do Termo de Doação.'],
     ['Não ocorrência de impedimentos (Anexo K)', 'a entidade não se enquadra nas vedações do art. 39 da Lei nº 13.019/2014 e não possui em seu quadro de dirigentes membro de Poder ou do Ministério Público ou dirigente de órgão ou entidade da administração pública municipal, estadual e/ou federal, estendendo-se a vedação aos respectivos cônjuges ou companheiros, bem como parentes em linha reta, colateral ou por afinidade, até o segundo grau, nem contas rejeitadas nos últimos 5 anos, estando apta a receber a doação.'],
+    ['Inexistência de alteração do estatuto', 'o Estatuto Social da entidade apresentado neste pedido não sofreu nenhuma alteração, reforma ou modificação até a presente data, encontrando-se em plena vigência e atualizado.'],
     ['Mandato eletivo', 'a diretoria da entidade não é composta atualmente por pessoa com mandato eletivo.'],
     ['Local adequado', 'a entidade possui local adequado para funcionamento e guarda do(s) bem(ns), informado no Plano de Uso do Bem.'],
   ];
@@ -656,7 +657,7 @@ function docRequerimento() {
   c.push({ text: `Pessoa jurídica de direito privado sem fins lucrativos – ${g.rotulo.toUpperCase()} – Norma N-455`, alignment: 'center', fontSize: 9, margin: [0, 2, 0, 2] });
   c.push({ text: 'Parte I – Ofício · Parte II – Declarações · Parte III – Documentos anexos · Parte IV – Assinatura', alignment: 'center', italics: true, fontSize: 7.5, color: '#555', margin: [0, 0, 0, 6] });
   c.push(barra('PARTE I – OFÍCIO DE SOLICITAÇÃO'));
-  c.push({ table: { widths: ['*'], body: [[{ stack: [{ text: [{ text: `Enquadramento: ${g.rotulo}`, bold: true }, ` – CNPJ aberto há pelo menos ${g.anos} ano(s) e no mínimo ${g.assoc} associados (Anexo B da N-455).`] }, { text: [{ text: 'Bens que podem ser pedidos: ', bold: true }, ENQ_BENS[GR() || 'I']], margin: [0, 2, 0, 0] }], fillColor: '#EEF3FA', fontSize: 8.5 }]] }, layout: 'noBorders', margin: [0, 2, 0, 8] });
+  c.push({ table: { widths: ['*'], body: [[{ stack: [{ text: [{ text: `Enquadramento: ${g.rotulo}`, bold: true }, ` – CNPJ aberto há pelo menos ${g.anos} ano(s) e no mínimo ${g.assoc} associados (Anexo B da N-455).`] }, { text: [{ text: 'Bens que podem ser pedidos: ', bold: true }, bensDoGrupo(GR() || 'I').livre.join('; ') + '.'], margin: [0, 2, 0, 0] }, ...(bensDoGrupo(GR() || 'I').cond.length ? [{ text: [{ text: 'Com análise especial da Comissão de Doação: ', bold: true, color: '#9A3412' }, bensDoGrupo(GR() || 'I').cond.join('; ') + '.'], margin: [0, 3, 0, 0] }] : []), { text: 'Use o modelo do grupo exigido pelo bem pedido: se a entidade se enquadra em um grupo maior, mas o bem pedido é permitido em grupo menor, use o modelo do grupo menor. Ex.: entidade enquadrada no Grupo III que pede só itens de inclusão produtiva usa o modelo do Grupo I; se pede trator, usa o do Grupo II.', italics: true, color: '#1F3864', fontSize: 8, margin: [0, 3, 0, 0] }], fillColor: '#EEF3FA', fontSize: 8.5 }]] }, layout: 'noBorders', margin: [0, 2, 0, 8] });
   c.push({ text: `Ofício nº ${v(S.ofNum, '___/2026')}`, bold: true });
   c.push({ text: `${v(S.cidade, '[Cidade]')}/PB, ${hojeExtenso()}.`, alignment: 'right', margin: [0, 0, 0, 8] });
   c.push({ text: 'À Companhia de Desenvolvimento dos Vales do São Francisco e do Parnaíba – Codevasf\n13ª Superintendência Regional – João Pessoa/PB\n' + `Aos cuidados do Senhor ${SUPERINTENDENTE} – Superintendente Regional`, margin: [0, 0, 0, 8] });
@@ -747,17 +748,34 @@ function docPlano() {
   c.push({ text: 'A requerente declara, para os devidos fins, possuir capacidade técnica e gerencial para operação, manutenção, aplicação e/ou supervisão da proposta no Plano de Uso.', margin: [0, 0, 0, 4] });
   c.push(grade([[campo('RESPONSÁVEL PELA GUARDA', S.gNome), campo('CPF', S.gCpf)], [campo('TELEFONE', S.gTel), campo('E-MAIL', S.gEmail)], [{ ...campo('ENDEREÇO DO LOCAL DE GUARDA', S.gEnd), colSpan: 2 }, {}], [{ ...campo('COORDENADAS GEOGRÁFICAS', S.semCoord ? 'Não informadas – localização pelo endereço acima' : S.gCoord), colSpan: 2 }, {}]], ['*', 160]));
   c.push(barra('16 – COMPROMISSOS'));
-  c.push({ text: 'Na qualidade de representante legal da requerente, firmo compromisso, para fins de prova junto ao Ministério da Integração e do Desenvolvimento Regional (MIDR) / Companhia de Desenvolvimento dos Vales do São Francisco e do Parnaíba (Codevasf), para os efeitos e sob as penas da lei, que:', alignment: 'justify', fontSize: 9, margin: [0, 0, 0, 3] });
-  ['São verdadeiros os dados acima.', 'Se responsabiliza pelo arquivamento dos registros necessários à comprovação de informações, quando requisitadas.', 'Possui capacidade técnica e gerencial para custeio, manutenção e operação por pessoas devidamente capacitadas.', 'Realizará as manutenções periódicas, nos prazos e condições estabelecidos pelo fabricante, quando aplicável.', 'Se compromete a manter o(s) bem(ns) armazenado(s) em espaço de propriedade da requerente ou, havendo impossibilidade, em área cedida por um dos seus membros, especificamente para esta finalidade.', 'Cumprirá e fará cumprir e supervisionará as cláusulas deste Plano de Uso e do Termo de Doação a ser firmado com a Codevasf.']
-    .forEach((x, i) => c.push({ text: `${'abcdef'[i]}) ${x}`, fontSize: 9, margin: [10, 0, 0, 2] }));
+  compromissosPDF(c, false);
   const integra = [S.recebeu === 'Sim' ? 'o Anexo – Relatório de Uso e Registro Fotográfico de Bens Recebidos' : '', blocosQ().length ? 'o Anexo – Questionário Técnico do Bem' : '', S.assocModo === 'Anexar PDF' ? 'a relação de associados anexada ao final' : ''].filter(Boolean);
   if (integra.length) c.push({ text: `Integra${integra.length > 1 ? 'm' : ''} este Plano de Uso, e ${integra.length > 1 ? 'são firmados' : 'é firmado'} pela assinatura abaixo, ${integra.join(', ').replace(/, ([^,]*)$/, ' e $1')}.`, italics: true, fontSize: 8.5, margin: [0, 4, 0, 0] });
   c.push(barra('17 – AUTENTICAÇÃO'));
   c.push({ stack: blocoAssin(), unbreakable: true });
+  c.push(OBS_PLANO());
   anexoRelatorio(c);
   anexoQuestionario(c);
   return { pageSize: 'A4', pageMargins: [40, 40, 40, 40], defaultStyle: { fontSize: 9.5, lineHeight: 1.15 }, footer: rodape(`Plano de Uso do Bem – Entidade privada – ${g.rotulo} – N-455`), content: c, info: { title: 'Plano de Uso do Bem – Codevasf' } };
 }
+
+// compromissos do Plano de Uso (texto revisado pelo 13º GB) e observação do modelo da norma
+const COMPROMISSOS = pub => [
+  'São verdadeiras as informações prestadas neste formulário e nos demais documentos apresentados.',
+  'Serão mantidos, de forma organizada e atualizada, os registros necessários à comprovação das informações relativas à utilização do(s) bem(ns), tais como planilhas de uso, identificação dos usuários, datas de utilização e registros de horímetro, entre outros, disponibilizando-os à Codevasf sempre que solicitados.',
+  `${pub ? 'O município' : 'A requerente'} dispõe de capacidade técnica e gerencial para assegurar a operação, a manutenção e o custeio do(s) bem(ns), inclusive mediante a disponibilização de operadores e demais profissionais devidamente capacitados.`,
+  'Serão realizadas as manutenções periódicas do(s) bem(ns), observados os prazos, as especificações e as recomendações do fabricante, quando aplicáveis.',
+  `O(s) bem(ns) será(ão) mantido(s) armazenado(s) em instalações adequadas, sob responsabilidade ${pub ? 'do município' : 'da requerente'}, preferencialmente em imóvel de sua propriedade.`,
+  `${pub ? 'O município' : 'A requerente'} compromete-se a cumprir e fazer cumprir as disposições deste Plano de Uso e do Termo de Doação a ser firmado com a Codevasf, bem como a supervisionar e assegurar o cumprimento das obrigações neles estabelecidas.`,
+];
+const COMPROMISSO_INTRO = pub => `Na qualidade de representante legal da requerente, DECLARO, para fins de comprovação perante a Companhia de Desenvolvimento dos Vales do São Francisco e do Parnaíba ${pub ? '- Codevasf' : '(Codevasf)'}, sob as penas da lei, que:`;
+function compromissosPDF(c, pub) {
+  const [a, z] = COMPROMISSO_INTRO(pub).split('DECLARO');
+  c.push({ text: [a, { text: 'DECLARO', bold: true }, z], alignment: 'justify', fontSize: 10, margin: [0, 0, 0, 3] });
+  COMPROMISSOS(pub).forEach((x, i) => c.push({ text: `${'abcdef'[i]}) ${x}`, fontSize: 10, alignment: 'justify', margin: [12, 0, 0, 2] }));
+}
+const OBS_PLANO_TXT = 'O PLANO DE USO DEVERÁ CONTER, NO MÍNIMO, AS INFORMAÇÕES LISTADAS ACIMA, PORÉM, NÃO DEVE SE LIMITAR EXCLUSIVAMENTE A ESTAS. QUALQUER SITUAÇÃO/INFORMAÇÃO RELEVANTE QUE POSSA AJUDAR NA COMPREENSÃO E ANÁLISE DO PLEITO DEVERÁ SER ACRESCENTADA';
+const OBS_PLANO = () => ({ table: { widths: ['*'], body: [[{ stack: [{ text: 'OBS.:', bold: true, italics: true, decoration: 'underline', fontSize: 7.5 }, { text: OBS_PLANO_TXT, italics: true, decoration: 'underline', fontSize: 7.5 }] }]] }, margin: [0, 6, 0, 0] });
 
 // ---------------------------------------------------------------- guardar / abrir preenchimento (arquivo .json)
 const slug = (x, n) => (x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\(.*?\)/g, '').replace(/[^\w]+/g, '_').replace(/^_+|_+$/g, '').slice(0, n);
@@ -943,14 +961,13 @@ function docPlanoPub() {
   c.push(grade([[{ ...campo('RAZÃO SOCIAL', S.razao), colSpan: 2 }, {}, campo('CNPJ', S.cnpj)], [{ ...campo('ENDEREÇO COMPLETO', S.endereco), colSpan: 2 }, {}, campo('CEP', S.cep)], [campo('BAIRRO', S.bairro), campo('CIDADE', S.cidade), campo('ESTADO', 'PB')], [campo('TELEFONE', S.tel), { ...campo('E-MAIL INSTITUCIONAL', S.email), colSpan: 2 }, {}]], ['*', '*', 140]));
   c.push(barra('2 – IDENTIFICAÇÃO DO REPRESENTANTE LEGAL'));
   c.push(grade([[campo('NOME COMPLETO', S.rNome), campo('CPF', S.rCpf)], [campo('TELEFONE', S.rTel), campo('E-MAIL', S.rEmail)]], ['*', 160]));
-  c.push(barra('3 – APRESENTAÇÃO DA PROPOSTA'));
+  c.push(barra('3 – OBJETIVO GERAL'));
+  c.push({ text: b.length ? b.map(x => `${x.qtd} ${x.nome}${x.fin ? ' – ' + x.fin : ''}`).join('; ') + '.' : '—' });
+  c.push(barra('4 – APRESENTAÇÃO DA PROPOSTA'));
   c.push({ ul: [
     `Principais atividades atendidas: ${v([...S.atividades, S.ativOutra].filter(Boolean).join(', '))}.`,
-    `Local de guarda dos equipamentos: ${v(S.gEnd)}${S.gCoord ? ' (coordenadas ' + S.gCoord + ')' : ''}.`,
     `Bens da mesma natureza que já possui: ${S.possuiMesma === 'Sim' ? v(S.possuiDesc) : v(S.possuiMesma)}.`,
   ] });
-  c.push(barra('4 – OBJETIVO GERAL'));
-  c.push({ text: b.length ? b.map(x => `${x.qtd} ${x.nome}${x.fin ? ' – ' + x.fin : ''}`).join('; ') + '.' : '—' });
   c.push(barra('5 – PÚBLICO-ALVO'));
   c.push({ text: `Comunidades atendidas: ${v(S.comunidades)}. População beneficiada: ${v(S.familias, '___')} famílias / ${v(S.pessoas, '___')} pessoas. Área: ${v(S.area.join(' e '))}. Distância média até a sede do município: ${v(S.distancia, '___')} km; condição das estradas: ${v(S.vias)}.` });
   c.push(barra('6 – JUSTIFICATIVA'));
@@ -970,13 +987,12 @@ function docPlanoPub() {
   c.push({ text: 'A requerente declara, para os devidos fins, possuir capacidade técnica e gerencial para operação, manutenção, aplicação e/ou supervisão da proposta no Plano de Uso.', margin: [0, 0, 0, 4] });
   c.push(grade([[campo('RESPONSÁVEL PELA GUARDA', S.gNome), campo('CPF', S.gCpf)], [campo('TELEFONE', S.gTel), campo('E-MAIL', S.gEmail)], [{ ...campo('ENDEREÇO DO LOCAL DE GUARDA', S.gEnd), colSpan: 2 }, {}], [{ ...campo('COORDENADAS GEOGRÁFICAS', S.semCoord ? 'Não informadas – localização pelo endereço acima' : S.gCoord), colSpan: 2 }, {}]], ['*', 160]));
   c.push(barra('13 – COMPROMISSOS'));
-  c.push({ text: 'Na qualidade de representante legal da requerente, firmo compromisso, para fins de prova junto ao Ministério da Integração e do Desenvolvimento Regional (MIDR) / Companhia de Desenvolvimento dos Vales do São Francisco e do Parnaíba (Codevasf), para os efeitos e sob as penas da lei, que:', alignment: 'justify', fontSize: 9, margin: [0, 0, 0, 3] });
-  ['São verdadeiros os dados acima.', 'Se responsabiliza pelo arquivamento dos registros necessários à comprovação de informações, quando requisitadas.', 'Possui capacidade técnica e gerencial para custeio, manutenção e operação por pessoas devidamente capacitadas.', 'Realizará as manutenções periódicas, nos prazos e condições estabelecidos pelo fabricante, quando aplicável.', 'Se compromete a manter o(s) bem(ns) armazenado(s) em espaço de propriedade da requerente ou, havendo impossibilidade, em área cedida por um dos seus membros, especificamente para esta finalidade.', 'Cumprirá e fará cumprir e supervisionará as cláusulas deste Plano de Uso e do Termo de Doação a ser firmado com a Codevasf.']
-    .forEach((x, i) => c.push({ text: `${'abcdef'[i]}) ${x}`, fontSize: 9, margin: [10, 0, 0, 2] }));
+  compromissosPDF(c, true);
   const integraP = [S.recebeu === 'Sim' ? 'o Anexo – Relatório de Uso e Registro Fotográfico de Bens Recebidos' : '', blocosQ().length ? 'o Anexo – Questionário Técnico do Bem' : ''].filter(Boolean);
   if (integraP.length) c.push({ text: `Integra${integraP.length > 1 ? 'm' : ''} este Plano de Uso, e ${integraP.length > 1 ? 'são firmados' : 'é firmado'} pela assinatura abaixo, ${integraP.join(' e ')}.`, italics: true, fontSize: 8.5, margin: [0, 4, 0, 0] });
   c.push(barra('14 – AUTENTICAÇÃO'));
   c.push({ stack: blocoAssin(), unbreakable: true });
+  c.push(OBS_PLANO());
   anexoRelatorio(c);
   anexoQuestionario(c);
   return { pageSize: 'A4', pageMargins: [40, 40, 40, 40], defaultStyle: { fontSize: 9.5, lineHeight: 1.15 }, footer: rodape('Plano de Uso do Bem – Entidade pública – N-455'), content: c, info: { title: 'Plano de Uso do Bem – Codevasf' } };
